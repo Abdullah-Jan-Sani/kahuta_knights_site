@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-app.secret_key = "kahuta-knights-secret-key"
+app.secret_key = "SECRET_KEY"
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 # ---------- Configuration ----------
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
