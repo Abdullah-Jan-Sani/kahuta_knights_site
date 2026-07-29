@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = "kahuta-knights-secret-key"
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "kahuta1234")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 # ---------- Configuration ----------
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
