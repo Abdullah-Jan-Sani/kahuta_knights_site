@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Rankings | Kahuta Knights{% endblock %}
+{% block content %}
+
+<section class="page-hero">
+  <h1>Rankings</h1>
+  <p>Current standings across the Kahuta Knights roster, by weight category.</p>
+  <p>Note: These rankings showcase top talent from across entire Kahuta, not just the Kahuta Knights Players.</p>
+</section>
+
+<section class="section">
+  {% for category in rankings %}
+  <div class="ranking-block">
+    <h2 class="ranking-category">{{ category.name }}</h2>
+    <div class="rankings-grid">
+      <div class="arm-ranking">
+        <h3>Right Arm</h3>
+        <table class="ranking-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in category.rows %}
+            <tr class="{{ 'rank-first' if row.rank == 1 else '' }}">
+              <td class="rank-cell">{{ row.rank }}</td>
+              <td>{{ row.name }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="arm-ranking">
+        <h3>Left Arm</h3>
+        <table class="ranking-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in category.left_rows %}
+            <tr class="{{ 'rank-first' if row.rank == 1 else '' }}">
+              <td class="rank-cell">{{ row.rank }}</td>
+              <td>{{ row.name }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</section>
+
+{% endblock %}

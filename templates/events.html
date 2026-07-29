@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Events | Kahuta Knights{% endblock %}
+{% block content %}
+
+<section class="page-hero">
+  <h1>Events</h1>
+  <p>Tournaments, trials, and training camps on the Kahuta Knights calendar.</p>
+</section>
+
+<section class="section">
+  <div class="timeline">
+    {% for event in events %}
+    <div class="timeline-item {{ 'is-past' if event.status == 'Completed' else '' }}">
+      <div class="timeline-date">
+        <span class="date-day">{{ event.day }}</span>
+        <span class="date-month">{{ event.month }} {{ event.year }}</span>
+      </div>
+      <div class="timeline-connector"></div>
+      <div class="timeline-card">
+        <span class="status-badge {{ 'status-past' if event.status == 'Completed' else 'status-upcoming' }}">{{ event.status }}</span>
+        <h3>{{ event.title }}</h3>
+        <p class="timeline-location">&#128205; {{ event.location }}</p>
+        <p>{{ event.description }}</p>
+        <div class="event-actions">
+          {% if event.status == 'Upcoming' %}
+            <a href="{{ url_for('register_event') }}" class="btn btn-primary">Register</a>
+          {% elif event.status == 'Completed' %}
+            <button class="btn btn-secondary" disabled>Review Tournament</button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+{% endblock %}

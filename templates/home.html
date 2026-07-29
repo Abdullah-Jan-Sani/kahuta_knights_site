@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Kahuta Knights Armwrestling | Home{% endblock %}
+{% block content %}
+
+<section class="hero">
+  <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="" class="hero-watermark" aria-hidden="true">
+  <div class="hero-content">
+    <p class="hero-eyebrow">Kahuta &nbsp;·&nbsp; Punjab &nbsp;·&nbsp; Pakistan</p>
+    <h1 class="hero-title">KAHUTA<br><em>KNIGHTS</em></h1>
+    <p class="hero-motto">STRENGTH &nbsp;&#9670;&nbsp; HONOR &nbsp;&#9670;&nbsp; VICTORY</p>
+    <div class="hero-actions">
+      <a href="{{ url_for('register') }}" class="btn btn-primary">Join The Team</a>
+      <a href="{{ url_for('events') }}" class="btn btn-ghost">See Upcoming Events</a>
+    </div>
+  </div>
+  <div class="scroll-cue" aria-hidden="true">
+    <span></span>
+  </div>
+</section>
+
+<section class="stats-strip">
+  <div class="stat"><span class="stat-num">2026</span><span class="stat-label">Founded</span></div>
+  <div class="stat-divider"></div>
+  <div class="stat"><span class="stat-num">{{ team_members|length }}+</span><span class="stat-label">Athletes</span></div>
+  <div class="stat-divider"></div>
+  <div class="stat"><span class="stat-num">{{ events|length }}</span><span class="stat-label">Tournaments</span></div>
+  <!-- <div class="stat-divider"></div>
+  <div class="stat"><span class="stat-num">#1</span><span class="stat-label">Regional Ranking</span></div>
+-->
+</section>
+
+<section class="section core-team">
+  <div class="section-heading">
+    <span class="eyebrow">The Front Line</span>
+    <h2>Team Founders and Coaches</h2>
+  </div>
+
+  <div class="core-grid">
+    {% for member in core_members %}
+    <div class="core-card">
+      <div class="core-photo">
+        <span>{{ member.initials }}</span>
+      </div>
+      <h3>{{ member.name }}</h3>
+      <p class="core-role">{{ member.role }}</p>
+      <p class="core-bio">{{ member.bio }}</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="admin-access-buttons">
+    <a href="{{ url_for('admin_access', target='event') }}" class="btn btn-primary">Admin Panel</a>
+  </div>
+
+  <p class="placeholder-note">
+    Placeholder initials shown above &mdash; drop real photos into
+    <code>static/images/members/</code> and swap the markup in <code>home.html</code> to display them.
+  </p>
+</section>
+
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }} | Kahuta Knights{% endblock %}
+{% block content %}
+
+<section class="page-hero">
+  <h1>{{ page_heading }}</h1>
+  <p>{{ note }}</p>
+</section>
+
+<section class="section">
+  <div class="admin-nav-buttons">
+    <a href="{{ url_for('admin_event_registration') }}" class="btn btn-primary">Event Registrations</a>
+    <a href="{{ url_for('admin_team_registration') }}" class="btn btn-ghost">Team Registrations</a>
+  </div>
+  {% if rows %}
+  <div class="table-card">
+    <table class="table">
+      <thead>
+        <tr>
+          {% for column in columns %}
+          <th>{{ column }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          {% for column in columns %}
+          <td>
+            {% if column == 'Screenshot File' and row[column] %}
+              <a href="{{ url_for('static', filename='uploads/' ~ row[column]) }}" target="_blank" rel="noopener">View</a>
+            {% else %}
+              {{ row[column] }}
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p>No registrations found yet.</p>
+  {% endif %}
+</section>
+
+{% endblock %}

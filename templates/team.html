@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Team Members | Kahuta Knights{% endblock %}
+{% block content %}
+
+<section class="page-hero">
+  <h1>Team Members</h1>
+  <p>The full Kahuta Knights roster.</p>
+</section>
+
+<section class="section">
+  <div class="team-grid">
+    {% for member in team_members[2:] %}
+    <div class="team-card">
+      <div class="team-photo">
+        <span>{{ member.initials }}</span>
+      </div>
+      <h3>{{ member.name }}</h3>
+      <p class="team-weight">{{ member.weight_class }}</p>
+      <p class="team-note">{{ member.note }}</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <p class="placeholder-note">
+    Placeholder initials shown above &mdash; drop real photos into
+    <code>static/images/members/</code> and swap the markup in <code>team.html</code> to display them.
+  </p>
+</section>
+
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Admin Access | Kahuta Knights{% endblock %}
+{% block content %}
+
+<section class="page-hero">
+  <h1>Admin Access</h1>
+  <p>Enter the admin password to view registration verification pages.</p>
+</section>
+
+<section class="section register-section">
+  <div class="form-card admin-access-card">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('admin_access') }}?target={{ target }}" method="POST">
+      <input type="hidden" name="target" value="{{ target }}">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="password">Admin Password</label>
+          <input type="password" id="password" name="password" placeholder="Password" required>
+        </div>
+      </div>
+      <div class="form-row checkbox-row">
+        <label class="checkbox-label"><input type="checkbox" id="show-password"> Show password</label>
+      </div>
+      <button type="submit" class="submit-btn">Continue</button>
+    </form>
+  </div>
+</section>
+
+{% if True %}
+<script>
+  const toggle = document.getElementById('show-password');
+  const passwordInput = document.getElementById('password');
+  if (toggle && passwordInput) {
+    toggle.addEventListener('change', () => {
+      passwordInput.type = toggle.checked ? 'text' : 'password';
+    });
+  }
+</script>
+{% endif %}
+
+{% endblock %}
