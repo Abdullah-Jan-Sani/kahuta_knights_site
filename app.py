@@ -79,6 +79,12 @@ TEAM_MEMBERS = CORE_MEMBERS + [
         "initials": "SK",
         "note": "Known for Strong toproll and Bone lock",
     },
+    {
+        "name": "Farhan",
+        "weight_class": "-60kg Class",
+        "initials": "F",
+        "note": "Known for Strong hook and hand control.",
+    },
 ]
 # Normalize core members so they also render correctly on the /team grid
 for m in TEAM_MEMBERS[:2]:
