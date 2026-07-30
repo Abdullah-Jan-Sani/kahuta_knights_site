@@ -117,11 +117,13 @@ RANKINGS = [
             {"rank": 1, "name": "Zain Ijaz",},
             {"rank": 2, "name": "Farhan",},
             {"rank": 3, "name": "Ayan", },
+            {"rank": 4, "name": "Ahad", },
         ],
         "left_rows": [
             {"rank": 1, "name": "Zain Ijaz",},
             {"rank": 2, "name": "Meeshan Ali",},
             {"rank": 3, "name": "Farhan", },
+            {"rank": 4, "name": "Ahad", },
         ],
     },
     {
@@ -130,11 +132,13 @@ RANKINGS = [
             {"rank": 1, "name": "Abdullah Jan Sani",},
             {"rank": 2, "name": "Sajjad Khan",},
             {"rank": 3, "name": "Hamid", },
+            {"rank": 4, "name": "---", },
         ],
         "left_rows": [
             {"rank": 1, "name": "Sajjad",},
             {"rank": 2, "name": "Abdullah Jan",},
             {"rank": 3, "name": "Hamid", },
+            {"rank": 4, "name": "---", },
         ],
     },
     {
@@ -143,11 +147,13 @@ RANKINGS = [
             {"rank": 1, "name": "Hamza Khan", },
             {"rank": 2, "name": "Sajjad Khan", },
             {"rank": 3, "name": "Abdull Rehman", },
+            {"rank": 4, "name": "Shehzad", },
         ],
         "left_rows": [
             {"rank": 1, "name": "Abdull Rehman", },
-            {"rank": 2, "name": "Sajjad Khan", },
-            {"rank": 3, "name": "Shams", },
+            {"rank": 2, "name": "Shamas", },
+            {"rank": 3, "name": "Shehzad", },
+            {"rank": 4, "name": "---", },
         ],
     },
 ]
