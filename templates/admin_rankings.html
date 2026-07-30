@@ -5,7 +5,7 @@
 <section class="page-hero">
   <h1>Manage Rankings</h1>
   <p>Add, edit, or remove wrestlers from the rankings shown on the public site.</p>
-  <p><a href="{{ url_for('admin_logout') }}">Log out</a></p>
+  <p><a href="{{ url_for('admin_logout') }}" class="admin-logout-btn">Log out</a></p>
 </section>
 
 <section class="section">
@@ -123,6 +123,22 @@
   .admin-btn-save { background: #2f7d32; color: #fff; }
   .admin-btn-delete { background: #b3261e; color: #fff; }
   .admin-actions-cell { white-space: nowrap; }
+  .admin-logout-btn {
+    display: inline-block;
+    background: #b3261e;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    padding: 0.6rem 1.5rem;
+    border-radius: 4px;
+    text-decoration: none;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    border: 2px solid #7a1913;
+  }
+  .admin-logout-btn:hover {
+    background: #8f1e18;
+  }
 </style>
 
 {% endblock %}
