@@ -24,8 +24,10 @@
         <div class="event-actions">
           {% if event.status == 'Upcoming' %}
             <a href="{{ url_for('register_event') }}" class="btn btn-primary">Register</a>
+            
           {% elif event.status == 'Completed' %}
             <button class="btn btn-secondary" disabled>Review Tournament</button>
+            
           {% endif %}
         </div>
       </div>
