@@ -54,42 +54,49 @@ TEAM_MEMBERS = CORE_MEMBERS + [
         "weight_class": "-70kg Class",
         "initials": "Aj",
         "note": "Known for strong and Defensive Hook technique.",
+        "photo_filename": "abdullah.png"
     },
     {
         "name": "M.Zain Ijaz",
         "weight_class": "-60kg Class",
         "initials": "ZI",
         "note": "Known for explosive starts and a strong top-roll technique.",
+        "photo_filename": "zain.png"
     },
     {
         "name": "Waqas Bhatti",
         "weight_class": "-80kg Class",
         "initials": "WB",
         "note": "Rising talent, undefeated in local trials this season.",
+        "photo_filename": "waqas.png"
     },
     {
         "name": "Hamza Khan",
         "weight_class": "-80kg Class",
         "initials": "HK",
         "note": "Known for explosive starts and a strong top-roll technique.",
+        "photo_filename": "hamza.png"
     },
     {
         "name": "Skiandar Satti",
         "weight_class": "80kg+ Class",
         "initials": "SS",
         "note": "Team strongman, and Coach",
+        "photo_filename": "sikandar.png"
     },
     {
         "name": "Sajjad Khan",
         "weight_class": "-70kg Class",
         "initials": "SK",
         "note": "Known for Strong toproll and Bone lock",
+        "photo_filename": "sajjad.png"
     },
     {
         "name": "Farhan",
-        "weight_class": "-60kg Class",
         "initials": "F",
+        "weight_class": "-60KG CLASS",
         "note": "Known for Strong hook and hand control.",
+        "photo_filename": "farhan.png"
     },
 ]
 # Normalize core members so they also render correctly on the /team grid

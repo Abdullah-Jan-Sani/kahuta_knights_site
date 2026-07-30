@@ -12,7 +12,11 @@
     {% for member in team_members[2:] %}
     <div class="team-card">
       <div class="team-photo">
-        <span>{{ member.initials }}</span>
+        {% if member.photo_filename %}
+          <img src="{{ url_for('static', filename='images/members/' + member.photo_filename) }}" alt="{{ member.name }}">
+        {% else %}
+          <span>{{ member.initials }}</span>
+        {% endif %}
       </div>
       <h3>{{ member.name }}</h3>
       <p class="team-weight">{{ member.weight_class }}</p>
