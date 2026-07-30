@@ -11,6 +11,7 @@
   <div class="admin-nav-buttons">
     <a href="{{ url_for('admin_event_registration') }}" class="btn btn-primary">Event Registrations</a>
     <a href="{{ url_for('admin_team_registration') }}" class="btn btn-ghost">Team Registrations</a>
+    <a href="{{ url_for('admin_access', target='rankings') }}" class="btn btn-ghost">Manage Rankings</a>
   </div>
   {% if rows %}
   <div class="table-card">

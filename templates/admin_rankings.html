@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Manage Rankings | Kahuta Knights{% endblock %}
+{% block content %}
+
+<section class="page-hero">
+  <h1>Manage Rankings</h1>
+  <p>Add, edit, or remove wrestlers from the rankings shown on the public site.</p>
+  <p><a href="{{ url_for('admin_logout') }}">Log out</a></p>
+</section>
+
+<section class="section">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="form-card">
+    <h2>Add New Category</h2>
+    <form action="{{ url_for('admin_rankings_add_category') }}" method="POST" class="admin-inline-form">
+      <input type="text" name="category_name" placeholder="e.g. -90kg Class" required>
+      <button type="submit" class="submit-btn">Add Category</button>
+    </form>
+  </div>
+
+  {% for category in rankings %}
+  {% set cat_index = loop.index0 %}
+  <div class="ranking-block admin-ranking-block">
+    <div class="admin-ranking-header">
+      <h2 class="ranking-category">{{ category.name }}</h2>
+      <form id="del-cat-{{ cat_index }}" action="{{ url_for('admin_rankings_delete_category', cat_index=cat_index) }}" method="POST"
+            onsubmit="return confirm('Delete the entire {{ category.name }} category? This cannot be undone.');"></form>
+      <button type="submit" form="del-cat-{{ cat_index }}" class="admin-btn admin-btn-delete">Delete Category</button>
+    </div>
+
+    <div class="rankings-grid">
+
+      <!-- Right Arm -->
+      <div class="arm-ranking">
+        <h3>Right Arm</h3>
+
+        {% for row in category.rows %}
+        <form id="edit-{{ cat_index }}-right-{{ loop.index0 }}" action="{{ url_for('admin_rankings_edit_row', cat_index=cat_index, side='right', row_index=loop.index0) }}" method="POST"></form>
+        <form id="delete-{{ cat_index }}-right-{{ loop.index0 }}" action="{{ url_for('admin_rankings_delete_row', cat_index=cat_index, side='right', row_index=loop.index0) }}" method="POST"
+              onsubmit="return confirm('Remove {{ row.name }} from Right Arm rankings?');"></form>
+        {% endfor %}
+
+        <table class="ranking-table admin-ranking-table">
+          <thead>
+            <tr><th>Rank</th><th>Name</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            {% for row in category.rows %}
+            <tr class="{{ 'rank-first' if row.rank == 1 else '' }}">
+              <td><input type="number" name="rank" form="edit-{{ cat_index }}-right-{{ loop.index0 }}" value="{{ row.rank }}" min="1" class="admin-rank-input" required></td>
+              <td><input type="text" name="name" form="edit-{{ cat_index }}-right-{{ loop.index0 }}" value="{{ row.name }}" class="admin-name-input" required></td>
+              <td class="admin-actions-cell">
+                <button type="submit" form="edit-{{ cat_index }}-right-{{ loop.index0 }}" class="admin-btn admin-btn-save">Save</button>
+                <button type="submit" form="delete-{{ cat_index }}-right-{{ loop.index0 }}" class="admin-btn admin-btn-delete">Delete</button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <form action="{{ url_for('admin_rankings_add_row', cat_index=cat_index, side='right') }}" method="POST" class="admin-inline-form admin-add-row-form">
+          <input type="number" name="rank" placeholder="Rank" min="1" required>
+          <input type="text" name="name" placeholder="Wrestler name" required>
+          <button type="submit" class="submit-btn">Add</button>
+        </form>
+      </div>
+
+      <!-- Left Arm -->
+      <div class="arm-ranking">
+        <h3>Left Arm</h3>
+
+        {% for row in category.left_rows %}
+        <form id="edit-{{ cat_index }}-left-{{ loop.index0 }}" action="{{ url_for('admin_rankings_edit_row', cat_index=cat_index, side='left', row_index=loop.index0) }}" method="POST"></form>
+        <form id="delete-{{ cat_index }}-left-{{ loop.index0 }}" action="{{ url_for('admin_rankings_delete_row', cat_index=cat_index, side='left', row_index=loop.index0) }}" method="POST"
+              onsubmit="return confirm('Remove {{ row.name }} from Left Arm rankings?');"></form>
+        {% endfor %}
+
+        <table class="ranking-table admin-ranking-table">
+          <thead>
+            <tr><th>Rank</th><th>Name</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            {% for row in category.left_rows %}
+            <tr class="{{ 'rank-first' if row.rank == 1 else '' }}">
+              <td><input type="number" name="rank" form="edit-{{ cat_index }}-left-{{ loop.index0 }}" value="{{ row.rank }}" min="1" class="admin-rank-input" required></td>
+              <td><input type="text" name="name" form="edit-{{ cat_index }}-left-{{ loop.index0 }}" value="{{ row.name }}" class="admin-name-input" required></td>
+              <td class="admin-actions-cell">
+                <button type="submit" form="edit-{{ cat_index }}-left-{{ loop.index0 }}" class="admin-btn admin-btn-save">Save</button>
+                <button type="submit" form="delete-{{ cat_index }}-left-{{ loop.index0 }}" class="admin-btn admin-btn-delete">Delete</button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <form action="{{ url_for('admin_rankings_add_row', cat_index=cat_index, side='left') }}" method="POST" class="admin-inline-form admin-add-row-form">
+          <input type="number" name="rank" placeholder="Rank" min="1" required>
+          <input type="text" name="name" placeholder="Wrestler name" required>
+          <button type="submit" class="submit-btn">Add</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+  {% endfor %}
+</section>
+
+<style>
+  .admin-ranking-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .admin-ranking-table td { padding: 0.4rem 0.5rem; }
+  .admin-rank-input { width: 4rem; }
+  .admin-name-input { width: 100%; min-width: 8rem; }
+  .admin-inline-form { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.75rem; flex-wrap: wrap; }
+  .admin-add-row-form input { padding: 0.35rem 0.5rem; }
+  .admin-btn { border: none; border-radius: 4px; padding: 0.35rem 0.75rem; cursor: pointer; font-size: 0.85rem; margin-right: 0.25rem; }
+  .admin-btn-save { background: #2f7d32; color: #fff; }
+  .admin-btn-delete { background: #b3261e; color: #fff; }
+  .admin-actions-cell { white-space: nowrap; }
+</style>
+
+{% endblock %}

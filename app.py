@@ -1,5 +1,7 @@
 import os
 import csv
+import json
+from functools import wraps
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from werkzeug.utils import secure_filename
@@ -18,6 +20,7 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 TEAM_DATA_FILE = os.path.join(BASE_DIR, "team_registrations.csv")
 EVENT_DATA_FILE = os.path.join(BASE_DIR, "event_registrations.csv")
+RANKINGS_FILE = os.path.join(BASE_DIR, "rankings.json")
 ALLOWED_EXTENSIONS = {"pdf", "doc", "docx", "xls", "csv", "jpg", "jpeg", "png", "gif"}
 MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10 MB max upload
 
@@ -114,53 +117,55 @@ EVENTS = [
         "description": "Open Tournment organized by Kahuta Knights at Nationals.",
         "status": "Upcoming",
     },
-    
+
 ]
 
-RANKINGS = [
+# Default rankings used only the very first time the app runs (to seed rankings.json).
+# After that, all reads/writes go through RANKINGS_FILE so admin edits persist.
+DEFAULT_RANKINGS = [
     {
         "name": "-60kg Class",
         "rows": [
-            {"rank": 1, "name": "Zain Ijaz",},
-            {"rank": 2, "name": "Farhan",},
-            {"rank": 3, "name": "Ayan", },
-            {"rank": 4, "name": "Ahad", },
+            {"rank": 1, "name": "Zain Ijaz"},
+            {"rank": 2, "name": "Farhan"},
+            {"rank": 3, "name": "Ayan"},
+            {"rank": 4, "name": "Ahad"},
         ],
         "left_rows": [
-            {"rank": 1, "name": "Zain Ijaz",},
-            {"rank": 2, "name": "Meeshan Ali",},
-            {"rank": 3, "name": "Farhan", },
-            {"rank": 4, "name": "Ahad", },
+            {"rank": 1, "name": "Zain Ijaz"},
+            {"rank": 2, "name": "Meeshan Ali"},
+            {"rank": 3, "name": "Farhan"},
+            {"rank": 4, "name": "Ahad"},
         ],
     },
     {
         "name": "-70kg Class",
         "rows": [
-            {"rank": 1, "name": "Abdullah Jan Sani",},
-            {"rank": 2, "name": "Sajjad Khan",},
-            {"rank": 3, "name": "Hamid", },
-            {"rank": 4, "name": "---", },
+            {"rank": 1, "name": "Abdullah Jan Sani"},
+            {"rank": 2, "name": "Sajjad Khan"},
+            {"rank": 3, "name": "Hamid"},
+            {"rank": 4, "name": "---"},
         ],
         "left_rows": [
-            {"rank": 1, "name": "Sajjad",},
-            {"rank": 2, "name": "Abdullah Jan",},
-            {"rank": 3, "name": "Hamid", },
-            {"rank": 4, "name": "---", },
+            {"rank": 1, "name": "Sajjad"},
+            {"rank": 2, "name": "Abdullah Jan"},
+            {"rank": 3, "name": "Hamid"},
+            {"rank": 4, "name": "---"},
         ],
     },
     {
         "name": "-80kg Class",
         "rows": [
-            {"rank": 1, "name": "Hamza Khan", },
-            {"rank": 2, "name": "Sajjad Khan", },
-            {"rank": 3, "name": "Abdull Rehman", },
-            {"rank": 4, "name": "Shehzad", },
+            {"rank": 1, "name": "Hamza Khan"},
+            {"rank": 2, "name": "Sajjad Khan"},
+            {"rank": 3, "name": "Abdull Rehman"},
+            {"rank": 4, "name": "Shehzad"},
         ],
         "left_rows": [
-            {"rank": 1, "name": "Abdull Rehman", },
-            {"rank": 2, "name": "Shamas", },
-            {"rank": 3, "name": "Shehzad", },
-            {"rank": 4, "name": "---", },
+            {"rank": 1, "name": "Abdull Rehman"},
+            {"rank": 2, "name": "Shamas"},
+            {"rank": 3, "name": "Shehzad"},
+            {"rank": 4, "name": "---"},
         ],
     },
 ]
@@ -189,13 +194,39 @@ def read_csv_rows(file_path):
         return list(reader)
 
 
+def load_rankings():
+    """Load rankings from rankings.json, seeding it with defaults on first run."""
+    if not os.path.isfile(RANKINGS_FILE):
+        save_rankings(DEFAULT_RANKINGS)
+        return DEFAULT_RANKINGS
+    with open(RANKINGS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_rankings(data):
+    """Persist rankings to rankings.json."""
+    with open(RANKINGS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+
+def login_required(view_func):
+    """Redirect to the admin login screen if the session isn't authenticated."""
+    @wraps(view_func)
+    def wrapped(*args, **kwargs):
+        if not session.get("admin_authenticated"):
+            flash("Please log in as admin to continue.", "error")
+            return redirect(url_for("admin_access", target=request.endpoint))
+        return view_func(*args, **kwargs)
+    return wrapped
+
+
 @app.context_processor
 def inject_globals():
     return {"current_year": datetime.now().year}
 
 
 # ======================================================================
-# ROUTES
+# PUBLIC ROUTES
 # ======================================================================
 
 @app.route("/")
@@ -213,7 +244,12 @@ def events():
 
 @app.route("/rankings")
 def rankings():
-    return render_template("rankings.html", active="rankings", rankings=RANKINGS)
+    return render_template(
+        "rankings.html",
+        active="rankings",
+        rankings=load_rankings(),
+        is_admin=bool(session.get("admin_authenticated")),
+    )
 
 
 @app.route("/team")
@@ -250,9 +286,21 @@ def register_event():
     )
 
 
+# ======================================================================
+# ADMIN AUTH
+# ======================================================================
+
 @app.route("/admin/access", methods=["GET", "POST"])
 def admin_access():
     target = request.args.get("target", "event")
+
+    if session.get("admin_authenticated") and request.method == "GET":
+        if target == "team":
+            return redirect(url_for("admin_team_registration"))
+        if target in ("rankings", "admin_rankings"):
+            return redirect(url_for("admin_rankings"))
+        return redirect(url_for("admin_event_registration"))
+
     if request.method == "POST":
         password = request.form.get("password", "")
         target = request.form.get("target", "event")
@@ -260,6 +308,8 @@ def admin_access():
             session["admin_authenticated"] = True
             if target == "team":
                 return redirect(url_for("admin_team_registration"))
+            if target == "rankings" or target == "admin_rankings":
+                return redirect(url_for("admin_rankings"))
             return redirect(url_for("admin_event_registration"))
         flash("Incorrect password. Please try again.", "error")
 
@@ -270,7 +320,15 @@ def admin_access():
     )
 
 
+@app.route("/admin/logout")
+def admin_logout():
+    session.pop("admin_authenticated", None)
+    flash("Logged out.", "success")
+    return redirect(url_for("home"))
+
+
 @app.route("/admin/event_registration")
+@login_required
 def admin_event_registration():
     rows = read_csv_rows(EVENT_DATA_FILE)
     columns = rows[0].keys() if rows else ["Timestamp", "Full Name", "Phone", "Team Name", "Email", "Age", "Weight", "Screenshot File"]
@@ -286,6 +344,7 @@ def admin_event_registration():
 
 
 @app.route("/admin/team_registration")
+@login_required
 def admin_team_registration():
     rows = read_csv_rows(TEAM_DATA_FILE)
     columns = rows[0].keys() if rows else ["Timestamp", "Full Name", "Phone", "Email", "Age", "Weight"]
@@ -299,6 +358,122 @@ def admin_team_registration():
         note="Review team join requests before adding new members.",
     )
 
+
+# ======================================================================
+# ADMIN: RANKINGS MANAGEMENT
+# ======================================================================
+
+@app.route("/admin/rankings")
+@login_required
+def admin_rankings():
+    return render_template(
+        "admin_rankings.html",
+        active="admin",
+        rankings=load_rankings(),
+    )
+
+
+@app.route("/admin/rankings/category/add", methods=["POST"])
+@login_required
+def admin_rankings_add_category():
+    name = request.form.get("category_name", "").strip()
+    if not name:
+        flash("Category name is required.", "error")
+        return redirect(url_for("admin_rankings"))
+
+    data = load_rankings()
+    data.append({"name": name, "rows": [], "left_rows": []})
+    save_rankings(data)
+    flash(f'Added category "{name}".', "success")
+    return redirect(url_for("admin_rankings"))
+
+
+@app.route("/admin/rankings/category/<int:cat_index>/delete", methods=["POST"])
+@login_required
+def admin_rankings_delete_category(cat_index):
+    data = load_rankings()
+    if 0 <= cat_index < len(data):
+        removed = data.pop(cat_index)
+        save_rankings(data)
+        flash(f'Deleted category "{removed["name"]}".', "success")
+    else:
+        flash("Category not found.", "error")
+    return redirect(url_for("admin_rankings"))
+
+
+@app.route("/admin/rankings/<int:cat_index>/<side>/add", methods=["POST"])
+@login_required
+def admin_rankings_add_row(cat_index, side):
+    side = "rows" if side == "right" else "left_rows"
+    rank = request.form.get("rank", "").strip()
+    name = request.form.get("name", "").strip()
+
+    data = load_rankings()
+    if not (0 <= cat_index < len(data)):
+        flash("Category not found.", "error")
+        return redirect(url_for("admin_rankings"))
+    if not name or not rank:
+        flash("Rank and name are required.", "error")
+        return redirect(url_for("admin_rankings"))
+
+    try:
+        rank = int(rank)
+    except ValueError:
+        flash("Rank must be a number.", "error")
+        return redirect(url_for("admin_rankings"))
+
+    data[cat_index].setdefault(side, []).append({"rank": rank, "name": name})
+    data[cat_index][side].sort(key=lambda r: r["rank"])
+    save_rankings(data)
+    flash("Wrestler added.", "success")
+    return redirect(url_for("admin_rankings"))
+
+
+@app.route("/admin/rankings/<int:cat_index>/<side>/<int:row_index>/edit", methods=["POST"])
+@login_required
+def admin_rankings_edit_row(cat_index, side, row_index):
+    side = "rows" if side == "right" else "left_rows"
+    rank = request.form.get("rank", "").strip()
+    name = request.form.get("name", "").strip()
+
+    data = load_rankings()
+    if not (0 <= cat_index < len(data)) or not (0 <= row_index < len(data[cat_index].get(side, []))):
+        flash("Entry not found.", "error")
+        return redirect(url_for("admin_rankings"))
+    if not name or not rank:
+        flash("Rank and name are required.", "error")
+        return redirect(url_for("admin_rankings"))
+
+    try:
+        rank = int(rank)
+    except ValueError:
+        flash("Rank must be a number.", "error")
+        return redirect(url_for("admin_rankings"))
+
+    data[cat_index][side][row_index] = {"rank": rank, "name": name}
+    data[cat_index][side].sort(key=lambda r: r["rank"])
+    save_rankings(data)
+    flash("Ranking updated.", "success")
+    return redirect(url_for("admin_rankings"))
+
+
+@app.route("/admin/rankings/<int:cat_index>/<side>/<int:row_index>/delete", methods=["POST"])
+@login_required
+def admin_rankings_delete_row(cat_index, side, row_index):
+    side = "rows" if side == "right" else "left_rows"
+    data = load_rankings()
+    if 0 <= cat_index < len(data) and 0 <= row_index < len(data[cat_index].get(side, [])):
+        removed = data[cat_index][side].pop(row_index)
+        save_rankings(data)
+        flash(f'Removed "{removed["name"]}".', "success")
+    else:
+        flash("Entry not found.", "error")
+    return redirect(url_for("admin_rankings"))
+
+
+# ======================================================================
+# REGISTRATION SUBMISSION
+# ======================================================================
 
 @app.route("/submit", methods=["POST"])
 def submit():

@@ -6,6 +6,9 @@
   <h1>Rankings</h1>
   <p>Current standings across the Kahuta Knights roster, by weight category.</p>
   <p>Note: These rankings showcase top talent from across entire Kahuta, not just the Kahuta Knights Players.</p>
+  {% if is_admin %}
+    <p><a href="{{ url_for('admin_rankings') }}">Manage Rankings</a></p>
+  {% endif %}
 </section>
 
 <section class="section">
