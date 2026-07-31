@@ -24,5 +24,17 @@
     "videos": [
       "video_20260731_145305700836_07142.mp4"
     ]
+  },
+  {
+    "day": "2",
+    "month": "August",
+    "year": "2026",
+    "title": "Arm Wrestling Super Fight",
+    "location": "International Fitness Tycon Gym, Motor Chowk , Kahuta",
+    "description": "Mustafa VS Zain Ijaz",
+    "status": "Upcoming",
+    "event_type": "super_fight",
+    "poster_filename": "poster_20260731_151240933602_WhatsApp_Image_2026-07-31_at_2.48.38_PM.jpeg",
+    "videos": []
   }
 ]
