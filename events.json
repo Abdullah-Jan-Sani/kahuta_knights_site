@@ -4,24 +4,32 @@
     "month": "August",
     "year": "2026",
     "title": "Arm Wrestling Super Fight",
-    "location": "International Fitness Tycon Gym, Motor Chowk , Kahuta",
-    "description": "Mustafa VS Zain Ijaz",
+    "location": "",
+    "description": "das",
     "status": "Upcoming",
     "event_type": "super_fight",
-    "poster_filename": "poster_20260731_151240933602_WhatsApp_Image_2026-07-31_at_2.48.38_PM.jpeg",
-    "videos": []
+    "poster_filename": "poster_20260731_172241199507_WhatsApp_Image_2026-07-31_at_2.48.38_PM.jpeg",
+    "video_links": {
+      "youtube": "",
+      "tiktok": "",
+      "instagram": ""
+    }
   },
   {
     "day": "14",
     "month": "August",
     "year": "2026",
-    "title": "Armwrestling Tournment",
-    "location": "International fitness Tycon Gym, Motor Chowk, Kahuta, Punjab",
-    "description": "Open Tournment organized by Kahuta Knights at Nationals.",
+    "title": "Arm Wrestling Tournament",
+    "location": "International Fitness Tycon Gym, Motor Chowk , Kahuta",
+    "description": "sd",
     "status": "Upcoming",
     "event_type": "tournament",
-    "poster_filename": "poster_20260731_144854698608_WhatsApp_Image_2026-07-23_at_9.22.33_PM.jpeg",
-    "videos": []
+    "poster_filename": "poster_20260731_172223422825_WhatsApp_Image_2026-07-23_at_9.22.33_PM.jpeg",
+    "video_links": {
+      "youtube": "",
+      "tiktok": "",
+      "instagram": ""
+    }
   },
   {
     "day": "12",
@@ -29,17 +37,46 @@
     "year": "2026",
     "title": "Arm Wrestling Super Fight",
     "location": "International Fitness Tycon Gym, Motor Chowk , Kahuta",
-    "description": "Farhan VS Abdullah Khan",
+    "description": "asdsa",
     "status": "Completed",
     "event_type": "super_fight",
-    "poster_filename": "poster_20260731_145154064239_WhatsApp_Image_2026-07-13_at_3.24.46_PM.jpeg",
-    "videos": [
-      "video_20260731_145305700836_07142.mp4"
-    ],
+    "poster_filename": "poster_20260731_172259283038_WhatsApp_Image_2026-07-13_at_3.24.46_PM.jpeg",
     "video_links": {
       "youtube": "",
       "tiktok": "",
-      "instagram": "https://www.instagram.com/kahuta_knights/reel/Daz9gN0pDeG/"
+      "instagram": ""
+    }
+  },
+  {
+    "day": "2",
+    "month": "July",
+    "year": "2026",
+    "title": "sdf",
+    "location": "dsfds",
+    "description": "dsfdsf",
+    "status": "Completed",
+    "event_type": "super_fight",
+    "poster_filename": "poster_20260731_172442714692_fg.jpeg",
+    "video_links": {
+      "youtube": "",
+      "tiktok": "",
+      "instagram": ""
+    }
+  },
+  {
+    "day": "25",
+    "month": "August",
+    "year": "2026",
+    "title": "sdf",
+    "location": "dsf",
+    "description": "dsf",
+    "status": "Upcoming",
+    "event_type": "super_fight",
+    "poster_filename": "poster_20260731_172507943475_WhatsApp_Image_2026-07-22_at_12.42.22_PM.jpeg",
+    "video_links": {
+      "youtube": "",
+      "tiktok": "",
+      "instagram": ""
     }
   }
 ]

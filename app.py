@@ -221,29 +221,45 @@ def save_rankings(data):
 
 
 def _event_sort_key(event):
-    """Upcoming events first, then Completed. Within each group, sorted chronologically."""
-    status_rank = 1 if event.get("status") == "Completed" else 0
+    """
+    Groups Upcoming (0) first, then Completed (1).
+    For Upcoming: sorts chronologically ascending (soonest date first at top).
+    For Completed: sorts chronologically descending (most recent past date at the top of the completed section).
+    """
+    status = event.get("status", "Upcoming")
+    status_rank = 1 if status == "Completed" else 0
+    
     try:
         date_obj = datetime.strptime(
             f"{event.get('day', '1')} {event.get('month', 'January')} {event.get('year', '1970')}",
             "%d %B %Y",
         )
+        timestamp = date_obj.timestamp()
     except ValueError:
-        date_obj = datetime.max
-    return (status_rank, date_obj)
+        timestamp = 0
+
+    # If upcoming, we want smaller timestamps first (ascending -> positive timestamp)
+    # If completed, we want to control their internal order too. 
+    # Returning a tuple where status comes first ensures Upcoming is always above Completed.
+    if status_rank == 0:
+        return (0, timestamp)     # Soonest upcoming date comes first
+    else:
+        return (1, -timestamp)    # Reverse chronological for completed items at the bottom
 
 
 def load_events():
     """Load events from events.json, seeding it with defaults on first run.
-    Returns events sorted with Upcoming first (soonest first), then Completed."""
+    Returns events sorted with Upcoming first (soonest first at the top), then Completed."""
     if not os.path.isfile(EVENTS_FILE):
         save_events(DEFAULT_EVENTS)
         data = DEFAULT_EVENTS
     else:
         with open(EVENTS_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
-    return sorted(data, key=_event_sort_key)
-
+            
+    # Sort by status group first (Upcoming = 0, Completed = 1), 
+    # then chronologically (earliest/soonest dates first)
+    return sorted(data, key=_event_sort_key, reverse=False)
 
 def save_events(data):
     """Persist events to events.json."""
