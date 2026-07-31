@@ -134,9 +134,9 @@ DEFAULT_RANKINGS = [
         "name": "-60kg Class",
         "rows": [
             {"rank": 1, "name": "Zain Ijaz"},
-            {"rank": 2, "name": "Farhan"},
-            {"rank": 3, "name": "Ayan"},
-            {"rank": 4, "name": "Ahad"},
+            {"rank": 2, "name": "Ayan"},
+            {"rank": 3, "name": "Farhan"},
+            {"rank": 4, "name": "Meeshan Ali"},
         ],
         "left_rows": [
             {"rank": 1, "name": "Zain Ijaz"},
@@ -148,16 +148,16 @@ DEFAULT_RANKINGS = [
     {
         "name": "-70kg Class",
         "rows": [
-            {"rank": 1, "name": "Abdullah Jan Sani"},
+            {"rank": 1, "name": "Abdullah Jan "},
             {"rank": 2, "name": "Sajjad Khan"},
             {"rank": 3, "name": "Hamid"},
-            {"rank": 4, "name": "---"},
+            {"rank": 4, "name": "Zain Ijaz"},
         ],
         "left_rows": [
-            {"rank": 1, "name": "Sajjad"},
-            {"rank": 2, "name": "Abdullah Jan"},
-            {"rank": 3, "name": "Hamid"},
-            {"rank": 4, "name": "---"},
+            {"rank": 1, "name": "Sajjad Khan"},
+            {"rank": 2, "name": "Shahwaiz"},
+            {"rank": 3, "name": "Abdullah Khan"},
+            {"rank": 4, "name": "Abdullah Jan"},
         ],
     },
     {
@@ -166,13 +166,13 @@ DEFAULT_RANKINGS = [
             {"rank": 1, "name": "Hamza Khan"},
             {"rank": 2, "name": "Sajjad Khan"},
             {"rank": 3, "name": "Abdull Rehman"},
-            {"rank": 4, "name": "Shehzad"},
+            {"rank": 4, "name": "Shehzad Khan"},
         ],
         "left_rows": [
             {"rank": 1, "name": "Abdull Rehman"},
-            {"rank": 2, "name": "Shamas"},
-            {"rank": 3, "name": "Shehzad"},
-            {"rank": 4, "name": "---"},
+            {"rank": 2, "name": "Shamas Hashmi"},
+            {"rank": 3, "name": "Shehzad Khan"},
+            {"rank": 4, "name": "Sajjad Khan"},
         ],
     },
 ]
