@@ -14,6 +14,8 @@
   <div class="timeline">
     {% for event in events %}
     {% set event_index = loop.index0 %}
+    {% set links = event.video_links or {} %}
+    {% set has_links = event.event_type == 'super_fight' and (links.youtube or links.tiktok or links.instagram) %}
     <div class="timeline-item {{ 'is-past' if event.status == 'Completed' else '' }}">
       <div class="timeline-date">
         <span class="date-day">{{ event.day }}</span>
@@ -27,7 +29,7 @@
         <p>{{ event.description }}</p>
 
         <div class="event-actions">
-          {% if event.poster_filename or event.videos %}
+          {% if event.poster_filename or has_links %}
             <button type="button" class="btn btn-primary" onclick="openEventModal({{ event_index }})">View Event</button>
           {% endif %}
         </div>
@@ -40,24 +42,29 @@
 <!-- Per-event popups: hidden until "View Event" is clicked -->
 {% for event in events %}
 {% set event_index = loop.index0 %}
+{% set links = event.video_links or {} %}
 <div id="event-modal-{{ event_index }}" class="event-modal-overlay" onclick="if (event.target === this) closeEventModal({{ event_index }})">
   <div class="event-modal-box">
     <span class="event-modal-close" onclick="closeEventModal({{ event_index }})">&times;</span>
     <h3>{{ event.title }}</h3>
 
-    <div class="event-modal-media">
-      {% if event.poster_filename %}
-      <img src="{{ url_for('static', filename='uploads/' ~ event.poster_filename) }}" alt="{{ event.title }} poster" class="event-modal-media-item" onclick="openLightbox(this.src)">
-      {% endif %}
+    {% if event.poster_filename %}
+    <img src="{{ url_for('static', filename='uploads/' ~ event.poster_filename) }}" alt="{{ event.title }} poster" class="event-modal-poster" onclick="openLightbox(this.src)">
+    {% endif %}
 
-      {% if event.event_type == 'super_fight' and event.videos %}
-        {% for video in event.videos %}
-        <video controls muted class="event-modal-media-item">
-          <source src="{{ url_for('static', filename='uploads/' ~ video) }}">
-        </video>
-        {% endfor %}
+    {% if event.event_type == 'super_fight' and (links.youtube or links.tiktok or links.instagram) %}
+    <div class="event-video-links">
+      {% if links.youtube %}
+      <a href="{{ links.youtube }}" target="_blank" rel="noopener" class="video-link-btn video-link-youtube">Watch on YouTube</a>
+      {% endif %}
+      {% if links.tiktok %}
+      <a href="{{ links.tiktok }}" target="_blank" rel="noopener" class="video-link-btn video-link-tiktok">Watch on TikTok</a>
+      {% endif %}
+      {% if links.instagram %}
+      <a href="{{ links.instagram }}" target="_blank" rel="noopener" class="video-link-btn video-link-instagram">Watch on Instagram</a>
       {% endif %}
     </div>
+    {% endif %}
   </div>
 </div>
 {% endfor %}
@@ -68,26 +75,6 @@
 </div>
 
 <style>
-  .event-modal-media {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    justify-content: center;
-    align-items: flex-start;
-    margin: 0.75rem 0;
-  }
-  .event-modal-media-item {
-    width: 280px;
-    max-width: 40vw;
-    height: 280px;
-    object-fit: contain;
-    background: #000;
-    border-radius: 8px;
-    cursor: zoom-in;
-  }
-  video.event-modal-media-item {
-    cursor: default;
-  }
   .event-modal-overlay {
     display: none;
     position: fixed;
@@ -111,6 +98,15 @@
     overflow-y: auto;
     text-align: center;
   }
+  .event-modal-poster {
+    max-width: 280px;
+    width: 100%;
+    max-height: 60vh;
+    object-fit: contain;
+    border-radius: 8px;
+    margin: 0.75rem 0;
+    cursor: zoom-in;
+  }
   .event-modal-close {
     position: absolute;
     top: 0.5rem;
@@ -119,6 +115,26 @@
     line-height: 1;
     cursor: pointer;
   }
+
+  .event-video-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 1rem;
+    align-items: stretch;
+  }
+  .video-link-btn {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+  }
+  .video-link-youtube { background: #FF0000; }
+  .video-link-tiktok { background: #010101; border: 1px solid #444; }
+  .video-link-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
 
   .lightbox-overlay {
     display: none;
@@ -157,13 +173,7 @@
   }
   function closeEventModal(index) {
     const overlay = document.getElementById('event-modal-' + index);
-    if (overlay) {
-      overlay.classList.remove('is-open');
-      overlay.querySelectorAll('video').forEach(v => {
-        v.pause();
-        v.currentTime = 0;
-      });
-    }
+    if (overlay) overlay.classList.remove('is-open');
   }
   function openLightbox(src) {
     const overlay = document.getElementById('lightbox-overlay');
@@ -179,10 +189,7 @@
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeLightbox();
-      document.querySelectorAll('.event-modal-overlay.is-open').forEach(el => {
-        const index = el.id.replace('event-modal-', '');
-        closeEventModal(index);
-      });
+      document.querySelectorAll('.event-modal-overlay.is-open').forEach(el => el.classList.remove('is-open'));
     }
   });
 </script>

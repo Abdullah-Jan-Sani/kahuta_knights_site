@@ -24,8 +24,7 @@ RANKINGS_FILE = os.path.join(BASE_DIR, "rankings.json")
 EVENTS_FILE = os.path.join(BASE_DIR, "events.json")
 ALLOWED_EXTENSIONS = {"pdf", "doc", "docx", "xls", "csv", "jpg", "jpeg", "png", "gif"}
 ALLOWED_POSTER_EXTENSIONS = {"jpg", "jpeg", "png", "gif", "webp"}
-ALLOWED_VIDEO_EXTENSIONS = {"mp4", "mov", "webm", "mkv", "avi"}
-MAX_CONTENT_LENGTH = 200 * 1024 * 1024  # 200 MB max upload (raised to allow event videos)
+MAX_CONTENT_LENGTH = 15 * 1024 * 1024  # 15 MB max upload (posters/screenshots only, no more video uploads)
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
@@ -123,7 +122,7 @@ DEFAULT_EVENTS = [
         "status": "Upcoming",
         "event_type": "tournament",
         "poster_filename": "",
-        "videos": [],
+        "video_links": {"youtube": "", "tiktok": "", "instagram": ""},
     },
 
 ]
@@ -187,10 +186,6 @@ def allowed_poster(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_POSTER_EXTENSIONS
 
 
-def allowed_video(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_VIDEO_EXTENSIONS
-
-
 def save_csv(file_path, headers, row):
     """Append a row to a CSV file, creating headers if needed."""
     file_exists = os.path.isfile(file_path)
@@ -225,13 +220,29 @@ def save_rankings(data):
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
+def _event_sort_key(event):
+    """Upcoming events first, then Completed. Within each group, sorted chronologically."""
+    status_rank = 1 if event.get("status") == "Completed" else 0
+    try:
+        date_obj = datetime.strptime(
+            f"{event.get('day', '1')} {event.get('month', 'January')} {event.get('year', '1970')}",
+            "%d %B %Y",
+        )
+    except ValueError:
+        date_obj = datetime.max
+    return (status_rank, date_obj)
+
+
 def load_events():
-    """Load events from events.json, seeding it with defaults on first run."""
+    """Load events from events.json, seeding it with defaults on first run.
+    Returns events sorted with Upcoming first (soonest first), then Completed."""
     if not os.path.isfile(EVENTS_FILE):
         save_events(DEFAULT_EVENTS)
-        return DEFAULT_EVENTS
-    with open(EVENTS_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+        data = DEFAULT_EVENTS
+    else:
+        with open(EVENTS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    return sorted(data, key=_event_sort_key)
 
 
 def save_events(data):
@@ -375,6 +386,7 @@ def admin_event_registration():
     return render_template(
         "admin_registration.html",
         active="admin",
+        admin_tab="event_registration",
         page_title="Event Payment Verification",
         page_heading="Event Registration Verification",
         rows=rows,
@@ -391,6 +403,7 @@ def admin_team_registration():
     return render_template(
         "admin_registration.html",
         active="admin",
+        admin_tab="team_registration",
         page_title="Team Join Verification",
         page_heading="Team Registration Verification",
         rows=rows,
@@ -409,6 +422,7 @@ def admin_rankings():
     return render_template(
         "admin_rankings.html",
         active="admin",
+        admin_tab="rankings",
         rankings=load_rankings(),
     )
 
@@ -542,6 +556,7 @@ def admin_events():
     return render_template(
         "admin_events.html",
         active="admin",
+        admin_tab="events",
         events=load_events(),
     )
 
@@ -570,14 +585,11 @@ def admin_events_add():
             return redirect(url_for("admin_events"))
         poster_filename = _save_uploaded_file(poster, "poster")
 
-    videos = []
+    video_links = {"youtube": "", "tiktok": "", "instagram": ""}
     if event_type == "super_fight":
-        for video_file in request.files.getlist("videos"):
-            if video_file and video_file.filename:
-                if not allowed_video(video_file.filename):
-                    flash(f'"{video_file.filename}" is not an allowed video type.', "error")
-                    continue
-                videos.append(_save_uploaded_file(video_file, "video"))
+        video_links["youtube"] = request.form.get("youtube_link", "").strip()
+        video_links["tiktok"] = request.form.get("tiktok_link", "").strip()
+        video_links["instagram"] = request.form.get("instagram_link", "").strip()
 
     data = load_events()
     data.append({
@@ -590,7 +602,7 @@ def admin_events_add():
         "status": status,
         "event_type": event_type,
         "poster_filename": poster_filename,
-        "videos": videos,
+        "video_links": video_links,
     })
     save_events(data)
     flash(f'Added event "{title}".', "success")
@@ -624,18 +636,14 @@ def admin_events_edit(event_index):
         event["poster_filename"] = _save_uploaded_file(poster, "poster")
 
     if event["event_type"] == "super_fight":
-        event.setdefault("videos", [])
-        for video_file in request.files.getlist("videos"):
-            if video_file and video_file.filename:
-                if not allowed_video(video_file.filename):
-                    flash(f'"{video_file.filename}" is not an allowed video type.', "error")
-                    continue
-                event["videos"].append(_save_uploaded_file(video_file, "video"))
+        event["video_links"] = {
+            "youtube": request.form.get("youtube_link", "").strip(),
+            "tiktok": request.form.get("tiktok_link", "").strip(),
+            "instagram": request.form.get("instagram_link", "").strip(),
+        }
     else:
-        # Not a super fight: drop any videos this event might already have.
-        for old_video in event.get("videos", []):
-            _delete_uploaded_file(old_video)
-        event["videos"] = []
+        # Not a super fight: clear any video links this event might already have.
+        event["video_links"] = {"youtube": "", "tiktok": "", "instagram": ""}
 
     data[event_index] = event
     save_events(data)
@@ -650,26 +658,10 @@ def admin_events_delete(event_index):
     if 0 <= event_index < len(data):
         removed = data.pop(event_index)
         _delete_uploaded_file(removed.get("poster_filename", ""))
-        for video in removed.get("videos", []):
-            _delete_uploaded_file(video)
         save_events(data)
         flash(f'Deleted event "{removed["title"]}".', "success")
     else:
         flash("Event not found.", "error")
-    return redirect(url_for("admin_events"))
-
-
-@app.route("/admin/events/<int:event_index>/video/<int:video_index>/delete", methods=["POST"])
-@login_required
-def admin_events_delete_video(event_index, video_index):
-    data = load_events()
-    if 0 <= event_index < len(data) and 0 <= video_index < len(data[event_index].get("videos", [])):
-        removed = data[event_index]["videos"].pop(video_index)
-        _delete_uploaded_file(removed)
-        save_events(data)
-        flash("Video removed.", "success")
-    else:
-        flash("Video not found.", "error")
     return redirect(url_for("admin_events"))
 
 

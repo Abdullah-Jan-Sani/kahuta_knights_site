@@ -4,8 +4,13 @@
 
 <section class="page-hero">
   <h1>Manage Events</h1>
-  <p>Add, edit, or remove tournaments and super fights. Upload posters for tournaments, or posters and videos for super fights.</p>
-  <p><a href="{{ url_for('admin_rankings') }}">Manage Rankings</a> &middot; <a href="{{ url_for('admin_event_registration') }}">Registrations</a></p>
+  <p>Add, edit, or remove tournaments and super fights. Upload a poster for any event. For super fights, add links to watch the video on YouTube, TikTok, or Instagram.</p>
+  <div class="admin-nav-buttons">
+    <a href="{{ url_for('admin_event_registration') }}" class="btn {{ 'btn-primary' if admin_tab == 'event_registration' else 'btn-ghost' }}">Event Registrations</a>
+    <a href="{{ url_for('admin_team_registration') }}" class="btn {{ 'btn-primary' if admin_tab == 'team_registration' else 'btn-ghost' }}">Team Registrations</a>
+    <a href="{{ url_for('admin_access', target='rankings') }}" class="btn {{ 'btn-primary' if admin_tab == 'rankings' else 'btn-ghost' }}">Manage Rankings</a>
+    <a href="{{ url_for('admin_access', target='events') }}" class="btn {{ 'btn-primary' if admin_tab == 'events' else 'btn-ghost' }}">Manage Events</a>
+  </div>
   <p><a href="{{ url_for('admin_logout') }}" class="admin-logout-btn">Log out</a></p>
 </section>
 
@@ -76,9 +81,26 @@
           <label>Poster Image</label>
           <input type="file" name="poster" accept="image/*">
         </div>
-        <div class="form-group admin-video-field">
-          <label>Videos (Super Fight only)</label>
-          <input type="file" name="videos" accept="video/*" multiple>
+      </div>
+      <div class="admin-video-links-field">
+        <p class="admin-video-links-label">Video Links (Super Fight only)</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label>YouTube URL</label>
+            <input type="url" name="youtube_link" placeholder="https://youtube.com/watch?v=...">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>TikTok URL</label>
+            <input type="url" name="tiktok_link" placeholder="https://tiktok.com/@user/video/...">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Instagram URL</label>
+            <input type="url" name="instagram_link" placeholder="https://instagram.com/reel/...">
+          </div>
         </div>
       </div>
       <button type="submit" class="submit-btn">Add Event</button>
@@ -87,6 +109,7 @@
 
   {% for event in events %}
   {% set event_index = loop.index0 %}
+  {% set links = event.video_links or {} %}
   <div class="form-card admin-event-row">
     <div class="admin-event-summary">
       {% if event.poster_filename %}
@@ -94,33 +117,24 @@
       {% endif %}
       <div class="admin-event-summary-text">
         <h3>{{ event.title }} <span class="admin-event-type-tag">{{ 'Super Fight' if event.event_type == 'super_fight' else 'Tournament' }}</span></h3>
-        <p class="admin-event-meta">{{ event.day }} {{ event.month }} {{ event.year }} &middot; {{ event.status }}{% if event.event_type == 'super_fight' and event.videos %} &middot; {{ event.videos|length }} video(s){% endif %}</p>
+        <p class="admin-event-meta">{{ event.day }} {{ event.month }} {{ event.year }} &middot; {{ event.status }}</p>
+        {% if event.event_type == 'super_fight' and (links.youtube or links.tiktok or links.instagram) %}
+        <p class="admin-event-meta">
+          {% if links.youtube %}<a href="{{ links.youtube }}" target="_blank" rel="noopener">YouTube</a>{% endif %}
+          {% if links.tiktok %} &middot; <a href="{{ links.tiktok }}" target="_blank" rel="noopener">TikTok</a>{% endif %}
+          {% if links.instagram %} &middot; <a href="{{ links.instagram }}" target="_blank" rel="noopener">Instagram</a>{% endif %}
+        </p>
+        {% endif %}
       </div>
       <div class="admin-event-summary-actions">
         <form id="del-event-{{ event_index }}" action="{{ url_for('admin_events_delete', event_index=event_index) }}" method="POST"
-              onsubmit="return confirm('Delete \'{{ event.title }}\'? This also removes its poster and videos.');"></form>
+              onsubmit="return confirm('Delete \'{{ event.title }}\'? This also removes its poster.');"></form>
         <button type="submit" form="del-event-{{ event_index }}" class="admin-btn admin-btn-delete">Delete</button>
       </div>
     </div>
 
     <details class="admin-collapsible">
       <summary class="admin-collapsible-summary">Edit</summary>
-
-      {% if event.event_type == 'super_fight' and event.videos %}
-      <div class="admin-video-list">
-        {% for video in event.videos %}
-        <div class="admin-video-item">
-          <video controls class="admin-video-preview">
-            <source src="{{ url_for('static', filename='uploads/' ~ video) }}">
-          </video>
-          <form action="{{ url_for('admin_events_delete_video', event_index=event_index, video_index=loop.index0) }}" method="POST"
-                onsubmit="return confirm('Remove this video?');">
-            <button type="submit" class="admin-btn admin-btn-delete">Remove Video</button>
-          </form>
-        </div>
-        {% endfor %}
-      </div>
-      {% endif %}
 
       <form action="{{ url_for('admin_events_edit', event_index=event_index) }}" method="POST" enctype="multipart/form-data" class="admin-event-form">
         <div class="form-row">
@@ -176,9 +190,26 @@
             <label>Replace Poster</label>
             <input type="file" name="poster" accept="image/*">
           </div>
-          <div class="form-group admin-video-field">
-            <label>Add Video (Super Fight only)</label>
-            <input type="file" name="videos" accept="video/*" multiple>
+        </div>
+        <div class="admin-video-links-field">
+          <p class="admin-video-links-label">Video Links (Super Fight only)</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label>YouTube URL</label>
+              <input type="url" name="youtube_link" value="{{ links.youtube or '' }}" placeholder="https://youtube.com/watch?v=...">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>TikTok URL</label>
+              <input type="url" name="tiktok_link" value="{{ links.tiktok or '' }}" placeholder="https://tiktok.com/@user/video/...">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Instagram URL</label>
+              <input type="url" name="instagram_link" value="{{ links.instagram or '' }}" placeholder="https://instagram.com/reel/...">
+            </div>
           </div>
         </div>
         <button type="submit" class="submit-btn">Save Changes</button>
@@ -206,9 +237,8 @@
   .admin-poster-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
   .admin-event-type-tag { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; background: #333; color: #fff; padding: 0.15rem 0.5rem; border-radius: 3px; margin-left: 0.4rem; }
 
-  .admin-video-list { display: flex; flex-wrap: wrap; gap: 1rem; margin: 0.75rem 0; }
-  .admin-video-item { max-width: 220px; }
-  .admin-video-preview { max-width: 220px; display: block; margin-bottom: 0.4rem; border-radius: 6px; }
+  .admin-video-links-field { border-top: 1px solid #333; margin-top: 0.75rem; padding-top: 0.75rem; }
+  .admin-video-links-label { font-weight: 700; margin: 0 0 0.5rem 0; font-size: 0.85rem; text-transform: uppercase; opacity: 0.8; }
 
   .admin-event-form textarea { width: 100%; }
   .admin-btn { border: none; border-radius: 4px; padding: 0.35rem 0.75rem; cursor: pointer; font-size: 0.85rem; }
@@ -232,17 +262,17 @@
 </style>
 
 <script>
-  function toggleVideoField(form) {
+  function toggleVideoLinksField(form) {
     const typeSelect = form.querySelector('select[name="event_type"]');
-    const videoField = form.querySelector('.admin-video-field');
-    if (!typeSelect || !videoField) return;
+    const linksField = form.querySelector('.admin-video-links-field');
+    if (!typeSelect || !linksField) return;
     const update = () => {
-      videoField.style.display = typeSelect.value === 'super_fight' ? '' : 'none';
+      linksField.style.display = typeSelect.value === 'super_fight' ? '' : 'none';
     };
     typeSelect.addEventListener('change', update);
     update();
   }
-  document.querySelectorAll('.admin-event-form').forEach(toggleVideoField);
+  document.querySelectorAll('.admin-event-form').forEach(toggleVideoLinksField);
 </script>
 
 {% endblock %}
