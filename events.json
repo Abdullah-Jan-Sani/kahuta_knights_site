@@ -1,5 +1,17 @@
 [
   {
+    "day": "2",
+    "month": "August",
+    "year": "2026",
+    "title": "Arm Wrestling Super Fight",
+    "location": "International Fitness Tycon Gym, Motor Chowk , Kahuta",
+    "description": "Mustafa VS Zain Ijaz",
+    "status": "Upcoming",
+    "event_type": "super_fight",
+    "poster_filename": "poster_20260731_151240933602_WhatsApp_Image_2026-07-31_at_2.48.38_PM.jpeg",
+    "videos": []
+  },
+  {
     "day": "14",
     "month": "August",
     "year": "2026",
@@ -23,18 +35,11 @@
     "poster_filename": "poster_20260731_145154064239_WhatsApp_Image_2026-07-13_at_3.24.46_PM.jpeg",
     "videos": [
       "video_20260731_145305700836_07142.mp4"
-    ]
-  },
-  {
-    "day": "2",
-    "month": "August",
-    "year": "2026",
-    "title": "Arm Wrestling Super Fight",
-    "location": "International Fitness Tycon Gym, Motor Chowk , Kahuta",
-    "description": "Mustafa VS Zain Ijaz",
-    "status": "Upcoming",
-    "event_type": "super_fight",
-    "poster_filename": "poster_20260731_151240933602_WhatsApp_Image_2026-07-31_at_2.48.38_PM.jpeg",
-    "videos": []
+    ],
+    "video_links": {
+      "youtube": "",
+      "tiktok": "",
+      "instagram": "https://www.instagram.com/kahuta_knights/reel/Daz9gN0pDeG/"
+    }
   }
 ]
