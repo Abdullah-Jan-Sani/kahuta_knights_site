@@ -21,8 +21,11 @@ UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 TEAM_DATA_FILE = os.path.join(BASE_DIR, "team_registrations.csv")
 EVENT_DATA_FILE = os.path.join(BASE_DIR, "event_registrations.csv")
 RANKINGS_FILE = os.path.join(BASE_DIR, "rankings.json")
+EVENTS_FILE = os.path.join(BASE_DIR, "events.json")
 ALLOWED_EXTENSIONS = {"pdf", "doc", "docx", "xls", "csv", "jpg", "jpeg", "png", "gif"}
-MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10 MB max upload
+ALLOWED_POSTER_EXTENSIONS = {"jpg", "jpeg", "png", "gif", "webp"}
+ALLOWED_VIDEO_EXTENSIONS = {"mp4", "mov", "webm", "mkv", "avi"}
+MAX_CONTENT_LENGTH = 200 * 1024 * 1024  # 200 MB max upload (raised to allow event videos)
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
@@ -107,7 +110,9 @@ for m in TEAM_MEMBERS[:2]:
     m.setdefault("weight_class", "Core Team")
     m.setdefault("note", m.get("bio", ""))
 
-EVENTS = [
+# Default events used only the very first time the app runs (to seed events.json).
+# After that, all reads/writes go through EVENTS_FILE so admin edits persist.
+DEFAULT_EVENTS = [
     {
         "day": "14",
         "month": "August",
@@ -116,6 +121,9 @@ EVENTS = [
         "location": "International fitness Tycon Gym, Motor Chowk, Kahuta, Punjab",
         "description": "Open Tournment organized by Kahuta Knights at Nationals.",
         "status": "Upcoming",
+        "event_type": "tournament",
+        "poster_filename": "",
+        "videos": [],
     },
 
 ]
@@ -175,6 +183,14 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def allowed_poster(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_POSTER_EXTENSIONS
+
+
+def allowed_video(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_VIDEO_EXTENSIONS
+
+
 def save_csv(file_path, headers, row):
     """Append a row to a CSV file, creating headers if needed."""
     file_exists = os.path.isfile(file_path)
@@ -209,6 +225,21 @@ def save_rankings(data):
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
+def load_events():
+    """Load events from events.json, seeding it with defaults on first run."""
+    if not os.path.isfile(EVENTS_FILE):
+        save_events(DEFAULT_EVENTS)
+        return DEFAULT_EVENTS
+    with open(EVENTS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_events(data):
+    """Persist events to events.json."""
+    with open(EVENTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+
 def login_required(view_func):
     """Redirect to the admin login screen if the session isn't authenticated."""
     @wraps(view_func)
@@ -233,13 +264,18 @@ def inject_globals():
 def home():
     return render_template(
         "home.html", active="home",
-        core_members=CORE_MEMBERS, team_members=TEAM_MEMBERS, events=EVENTS
+        core_members=CORE_MEMBERS, team_members=TEAM_MEMBERS, events=load_events()
     )
 
 
 @app.route("/events")
 def events():
-    return render_template("events.html", active="events", events=EVENTS)
+    return render_template(
+        "events.html",
+        active="events",
+        events=load_events(),
+        is_admin=bool(session.get("admin_authenticated")),
+    )
 
 
 @app.route("/rankings")
@@ -299,6 +335,8 @@ def admin_access():
             return redirect(url_for("admin_team_registration"))
         if target in ("rankings", "admin_rankings"):
             return redirect(url_for("admin_rankings"))
+        if target in ("events", "admin_events"):
+            return redirect(url_for("admin_events"))
         return redirect(url_for("admin_event_registration"))
 
     if request.method == "POST":
@@ -310,6 +348,8 @@ def admin_access():
                 return redirect(url_for("admin_team_registration"))
             if target == "rankings" or target == "admin_rankings":
                 return redirect(url_for("admin_rankings"))
+            if target == "events" or target == "admin_events":
+                return redirect(url_for("admin_events"))
             return redirect(url_for("admin_event_registration"))
         flash("Incorrect password. Please try again.", "error")
 
@@ -469,6 +509,168 @@ def admin_rankings_delete_row(cat_index, side, row_index):
     else:
         flash("Entry not found.", "error")
     return redirect(url_for("admin_rankings"))
+
+
+# ======================================================================
+# ADMIN: EVENTS MANAGEMENT
+# ======================================================================
+
+def _save_uploaded_file(file_storage, prefix):
+    """Save an uploaded file with a timestamped, sanitized filename. Returns the stored filename."""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S%f")
+    safe_name = secure_filename(file_storage.filename)
+    stored_filename = f"{prefix}_{timestamp}_{safe_name}"
+    file_storage.save(os.path.join(app.config["UPLOAD_FOLDER"], stored_filename))
+    return stored_filename
+
+
+def _delete_uploaded_file(filename):
+    """Remove a previously uploaded file from disk, ignoring if it's already gone."""
+    if not filename:
+        return
+    path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+    if os.path.isfile(path):
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+
+
+@app.route("/admin/events")
+@login_required
+def admin_events():
+    return render_template(
+        "admin_events.html",
+        active="admin",
+        events=load_events(),
+    )
+
+
+@app.route("/admin/events/add", methods=["POST"])
+@login_required
+def admin_events_add():
+    event_type = request.form.get("event_type", "tournament")
+    day = request.form.get("day", "").strip()
+    month = request.form.get("month", "").strip()
+    year = request.form.get("year", "").strip()
+    title = request.form.get("title", "").strip()
+    location = request.form.get("location", "").strip()
+    description = request.form.get("description", "").strip()
+    status = request.form.get("status", "Upcoming")
+
+    if not (day and month and year and title):
+        flash("Day, month, year, and title are required.", "error")
+        return redirect(url_for("admin_events"))
+
+    poster_filename = ""
+    poster = request.files.get("poster")
+    if poster and poster.filename:
+        if not allowed_poster(poster.filename):
+            flash("Poster must be an image file (jpg, png, gif, webp).", "error")
+            return redirect(url_for("admin_events"))
+        poster_filename = _save_uploaded_file(poster, "poster")
+
+    videos = []
+    if event_type == "super_fight":
+        for video_file in request.files.getlist("videos"):
+            if video_file and video_file.filename:
+                if not allowed_video(video_file.filename):
+                    flash(f'"{video_file.filename}" is not an allowed video type.', "error")
+                    continue
+                videos.append(_save_uploaded_file(video_file, "video"))
+
+    data = load_events()
+    data.append({
+        "day": day,
+        "month": month,
+        "year": year,
+        "title": title,
+        "location": location,
+        "description": description,
+        "status": status,
+        "event_type": event_type,
+        "poster_filename": poster_filename,
+        "videos": videos,
+    })
+    save_events(data)
+    flash(f'Added event "{title}".', "success")
+    return redirect(url_for("admin_events"))
+
+
+@app.route("/admin/events/<int:event_index>/edit", methods=["POST"])
+@login_required
+def admin_events_edit(event_index):
+    data = load_events()
+    if not (0 <= event_index < len(data)):
+        flash("Event not found.", "error")
+        return redirect(url_for("admin_events"))
+
+    event = data[event_index]
+    event["event_type"] = request.form.get("event_type", event.get("event_type", "tournament"))
+    event["day"] = request.form.get("day", "").strip() or event.get("day", "")
+    event["month"] = request.form.get("month", "").strip() or event.get("month", "")
+    event["year"] = request.form.get("year", "").strip() or event.get("year", "")
+    event["title"] = request.form.get("title", "").strip() or event.get("title", "")
+    event["location"] = request.form.get("location", "").strip()
+    event["description"] = request.form.get("description", "").strip()
+    event["status"] = request.form.get("status", event.get("status", "Upcoming"))
+
+    poster = request.files.get("poster")
+    if poster and poster.filename:
+        if not allowed_poster(poster.filename):
+            flash("Poster must be an image file (jpg, png, gif, webp).", "error")
+            return redirect(url_for("admin_events"))
+        _delete_uploaded_file(event.get("poster_filename", ""))
+        event["poster_filename"] = _save_uploaded_file(poster, "poster")
+
+    if event["event_type"] == "super_fight":
+        event.setdefault("videos", [])
+        for video_file in request.files.getlist("videos"):
+            if video_file and video_file.filename:
+                if not allowed_video(video_file.filename):
+                    flash(f'"{video_file.filename}" is not an allowed video type.', "error")
+                    continue
+                event["videos"].append(_save_uploaded_file(video_file, "video"))
+    else:
+        # Not a super fight: drop any videos this event might already have.
+        for old_video in event.get("videos", []):
+            _delete_uploaded_file(old_video)
+        event["videos"] = []
+
+    data[event_index] = event
+    save_events(data)
+    flash("Event updated.", "success")
+    return redirect(url_for("admin_events"))
+
+
+@app.route("/admin/events/<int:event_index>/delete", methods=["POST"])
+@login_required
+def admin_events_delete(event_index):
+    data = load_events()
+    if 0 <= event_index < len(data):
+        removed = data.pop(event_index)
+        _delete_uploaded_file(removed.get("poster_filename", ""))
+        for video in removed.get("videos", []):
+            _delete_uploaded_file(video)
+        save_events(data)
+        flash(f'Deleted event "{removed["title"]}".', "success")
+    else:
+        flash("Event not found.", "error")
+    return redirect(url_for("admin_events"))
+
+
+@app.route("/admin/events/<int:event_index>/video/<int:video_index>/delete", methods=["POST"])
+@login_required
+def admin_events_delete_video(event_index, video_index):
+    data = load_events()
+    if 0 <= event_index < len(data) and 0 <= video_index < len(data[event_index].get("videos", [])):
+        removed = data[event_index]["videos"].pop(video_index)
+        _delete_uploaded_file(removed)
+        save_events(data)
+        flash("Video removed.", "success")
+    else:
+        flash("Video not found.", "error")
+    return redirect(url_for("admin_events"))
 
 
 # ======================================================================

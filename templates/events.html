@@ -5,11 +5,15 @@
 <section class="page-hero">
   <h1>Events</h1>
   <p>Tournaments, trials, and training camps on the Kahuta Knights calendar.</p>
+  {% if is_admin %}
+    <p><a href="{{ url_for('admin_events') }}">Manage Events</a></p>
+  {% endif %}
 </section>
 
 <section class="section">
   <div class="timeline">
     {% for event in events %}
+    {% set event_index = loop.index0 %}
     <div class="timeline-item {{ 'is-past' if event.status == 'Completed' else '' }}">
       <div class="timeline-date">
         <span class="date-day">{{ event.day }}</span>
@@ -21,13 +25,10 @@
         <h3>{{ event.title }}</h3>
         <p class="timeline-location">&#128205; {{ event.location }}</p>
         <p>{{ event.description }}</p>
+
         <div class="event-actions">
-          {% if event.status == 'Upcoming' %}
-            <a href="{{ url_for('register_event') }}" class="btn btn-primary">Register</a>
-            
-          {% elif event.status == 'Completed' %}
-            <button class="btn btn-secondary" disabled>Review Tournament</button>
-            
+          {% if event.poster_filename or event.videos %}
+            <button type="button" class="btn btn-primary" onclick="openEventModal({{ event_index }})">View Event</button>
           {% endif %}
         </div>
       </div>
@@ -35,5 +36,155 @@
     {% endfor %}
   </div>
 </section>
+
+<!-- Per-event popups: hidden until "View Event" is clicked -->
+{% for event in events %}
+{% set event_index = loop.index0 %}
+<div id="event-modal-{{ event_index }}" class="event-modal-overlay" onclick="if (event.target === this) closeEventModal({{ event_index }})">
+  <div class="event-modal-box">
+    <span class="event-modal-close" onclick="closeEventModal({{ event_index }})">&times;</span>
+    <h3>{{ event.title }}</h3>
+
+    <div class="event-modal-media">
+      {% if event.poster_filename %}
+      <img src="{{ url_for('static', filename='uploads/' ~ event.poster_filename) }}" alt="{{ event.title }} poster" class="event-modal-media-item" onclick="openLightbox(this.src)">
+      {% endif %}
+
+      {% if event.event_type == 'super_fight' and event.videos %}
+        {% for video in event.videos %}
+        <video controls muted class="event-modal-media-item">
+          <source src="{{ url_for('static', filename='uploads/' ~ video) }}">
+        </video>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<div id="lightbox-overlay" class="lightbox-overlay" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="Full size poster" class="lightbox-img">
+  <span class="lightbox-close">&times;</span>
+</div>
+
+<style>
+  .event-modal-media {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    align-items: flex-start;
+    margin: 0.75rem 0;
+  }
+  .event-modal-media-item {
+    width: 280px;
+    max-width: 40vw;
+    height: 280px;
+    object-fit: contain;
+    background: #000;
+    border-radius: 8px;
+    cursor: zoom-in;
+  }
+  video.event-modal-media-item {
+    cursor: default;
+  }
+  .event-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 900;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+  .event-modal-overlay.is-open {
+    display: flex;
+  }
+  .event-modal-box {
+    position: relative;
+    background: #1a1a1a;
+    border-radius: 10px;
+    padding: 1.5rem;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    text-align: center;
+  }
+  .event-modal-close {
+    position: absolute;
+    top: 0.5rem;
+    right: 1rem;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .lightbox-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+  }
+  .lightbox-overlay.is-open {
+    display: flex;
+  }
+  .lightbox-img {
+    max-width: 92vw;
+    max-height: 92vh;
+    border-radius: 6px;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+  }
+  .lightbox-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    color: #fff;
+    font-size: 2.5rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  function openEventModal(index) {
+    const overlay = document.getElementById('event-modal-' + index);
+    if (overlay) overlay.classList.add('is-open');
+  }
+  function closeEventModal(index) {
+    const overlay = document.getElementById('event-modal-' + index);
+    if (overlay) {
+      overlay.classList.remove('is-open');
+      overlay.querySelectorAll('video').forEach(v => {
+        v.pause();
+        v.currentTime = 0;
+      });
+    }
+  }
+  function openLightbox(src) {
+    const overlay = document.getElementById('lightbox-overlay');
+    const img = document.getElementById('lightbox-img');
+    img.src = src;
+    overlay.classList.add('is-open');
+  }
+  function closeLightbox() {
+    const overlay = document.getElementById('lightbox-overlay');
+    overlay.classList.remove('is-open');
+    document.getElementById('lightbox-img').src = '';
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeLightbox();
+      document.querySelectorAll('.event-modal-overlay.is-open').forEach(el => {
+        const index = el.id.replace('event-modal-', '');
+        closeEventModal(index);
+      });
+    }
+  });
+</script>
 
 {% endblock %}

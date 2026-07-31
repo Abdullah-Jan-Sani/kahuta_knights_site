@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% block title %}Manage Events | Kahuta Knights{% endblock %}
+{% block content %}
+
+<section class="page-hero">
+  <h1>Manage Events</h1>
+  <p>Add, edit, or remove tournaments and super fights. Upload posters for tournaments, or posters and videos for super fights.</p>
+  <p><a href="{{ url_for('admin_rankings') }}">Manage Rankings</a> &middot; <a href="{{ url_for('admin_event_registration') }}">Registrations</a></p>
+  <p><a href="{{ url_for('admin_logout') }}" class="admin-logout-btn">Log out</a></p>
+</section>
+
+<section class="section">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <details class="form-card admin-collapsible">
+    <summary class="admin-collapsible-summary">+ Add New Event</summary>
+    <form action="{{ url_for('admin_events_add') }}" method="POST" enctype="multipart/form-data" class="admin-event-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Event Type</label>
+          <select name="event_type" required>
+            <option value="tournament">Tournament</option>
+            <option value="super_fight">Super Fight</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select name="status" required>
+            <option value="Upcoming">Upcoming</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Day</label>
+          <input type="text" name="day" placeholder="14" required>
+        </div>
+        <div class="form-group">
+          <label>Month</label>
+          <input type="text" name="month" placeholder="August" required>
+        </div>
+        <div class="form-group">
+          <label>Year</label>
+          <input type="text" name="year" placeholder="2026" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" name="title" placeholder="Armwrestling Championship" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Location</label>
+          <input type="text" name="location" placeholder="Venue, City">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Description</label>
+          <textarea name="description" rows="3" placeholder="Event details"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Poster Image</label>
+          <input type="file" name="poster" accept="image/*">
+        </div>
+        <div class="form-group admin-video-field">
+          <label>Videos (Super Fight only)</label>
+          <input type="file" name="videos" accept="video/*" multiple>
+        </div>
+      </div>
+      <button type="submit" class="submit-btn">Add Event</button>
+    </form>
+  </details>
+
+  {% for event in events %}
+  {% set event_index = loop.index0 %}
+  <div class="form-card admin-event-row">
+    <div class="admin-event-summary">
+      {% if event.poster_filename %}
+      <img src="{{ url_for('static', filename='uploads/' ~ event.poster_filename) }}" alt="{{ event.title }} poster" class="admin-poster-thumb">
+      {% endif %}
+      <div class="admin-event-summary-text">
+        <h3>{{ event.title }} <span class="admin-event-type-tag">{{ 'Super Fight' if event.event_type == 'super_fight' else 'Tournament' }}</span></h3>
+        <p class="admin-event-meta">{{ event.day }} {{ event.month }} {{ event.year }} &middot; {{ event.status }}{% if event.event_type == 'super_fight' and event.videos %} &middot; {{ event.videos|length }} video(s){% endif %}</p>
+      </div>
+      <div class="admin-event-summary-actions">
+        <form id="del-event-{{ event_index }}" action="{{ url_for('admin_events_delete', event_index=event_index) }}" method="POST"
+              onsubmit="return confirm('Delete \'{{ event.title }}\'? This also removes its poster and videos.');"></form>
+        <button type="submit" form="del-event-{{ event_index }}" class="admin-btn admin-btn-delete">Delete</button>
+      </div>
+    </div>
+
+    <details class="admin-collapsible">
+      <summary class="admin-collapsible-summary">Edit</summary>
+
+      {% if event.event_type == 'super_fight' and event.videos %}
+      <div class="admin-video-list">
+        {% for video in event.videos %}
+        <div class="admin-video-item">
+          <video controls class="admin-video-preview">
+            <source src="{{ url_for('static', filename='uploads/' ~ video) }}">
+          </video>
+          <form action="{{ url_for('admin_events_delete_video', event_index=event_index, video_index=loop.index0) }}" method="POST"
+                onsubmit="return confirm('Remove this video?');">
+            <button type="submit" class="admin-btn admin-btn-delete">Remove Video</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <form action="{{ url_for('admin_events_edit', event_index=event_index) }}" method="POST" enctype="multipart/form-data" class="admin-event-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Event Type</label>
+            <select name="event_type" required>
+              <option value="tournament" {{ 'selected' if event.event_type == 'tournament' else '' }}>Tournament</option>
+              <option value="super_fight" {{ 'selected' if event.event_type == 'super_fight' else '' }}>Super Fight</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select name="status" required>
+              <option value="Upcoming" {{ 'selected' if event.status == 'Upcoming' else '' }}>Upcoming</option>
+              <option value="Completed" {{ 'selected' if event.status == 'Completed' else '' }}>Completed</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Day</label>
+            <input type="text" name="day" value="{{ event.day }}" required>
+          </div>
+          <div class="form-group">
+            <label>Month</label>
+            <input type="text" name="month" value="{{ event.month }}" required>
+          </div>
+          <div class="form-group">
+            <label>Year</label>
+            <input type="text" name="year" value="{{ event.year }}" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" name="title" value="{{ event.title }}" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Location</label>
+            <input type="text" name="location" value="{{ event.location }}">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" rows="3">{{ event.description }}</textarea>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Replace Poster</label>
+            <input type="file" name="poster" accept="image/*">
+          </div>
+          <div class="form-group admin-video-field">
+            <label>Add Video (Super Fight only)</label>
+            <input type="file" name="videos" accept="video/*" multiple>
+          </div>
+        </div>
+        <button type="submit" class="submit-btn">Save Changes</button>
+      </form>
+    </details>
+  </div>
+  {% endfor %}
+</section>
+
+<style>
+  .admin-collapsible-summary {
+    cursor: pointer;
+    font-weight: 700;
+    padding: 0.4rem 0;
+    list-style: none;
+  }
+  .admin-collapsible-summary::-webkit-details-marker { display: none; }
+  .admin-collapsible[open] .admin-collapsible-summary { margin-bottom: 0.75rem; }
+
+  .admin-event-row { margin-bottom: 1rem; }
+  .admin-event-summary { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .admin-event-summary-text { flex: 1; min-width: 180px; }
+  .admin-event-summary-text h3 { margin: 0 0 0.2rem 0; }
+  .admin-event-meta { margin: 0; font-size: 0.85rem; opacity: 0.8; }
+  .admin-poster-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+  .admin-event-type-tag { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; background: #333; color: #fff; padding: 0.15rem 0.5rem; border-radius: 3px; margin-left: 0.4rem; }
+
+  .admin-video-list { display: flex; flex-wrap: wrap; gap: 1rem; margin: 0.75rem 0; }
+  .admin-video-item { max-width: 220px; }
+  .admin-video-preview { max-width: 220px; display: block; margin-bottom: 0.4rem; border-radius: 6px; }
+
+  .admin-event-form textarea { width: 100%; }
+  .admin-btn { border: none; border-radius: 4px; padding: 0.35rem 0.75rem; cursor: pointer; font-size: 0.85rem; }
+  .admin-btn-delete { background: #b3261e; color: #fff; }
+  .admin-logout-btn {
+    display: inline-block;
+    background: #b3261e;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    padding: 0.6rem 1.5rem;
+    border-radius: 4px;
+    text-decoration: none;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    border: 2px solid #7a1913;
+  }
+  .admin-logout-btn:hover {
+    background: #8f1e18;
+  }
+</style>
+
+<script>
+  function toggleVideoField(form) {
+    const typeSelect = form.querySelector('select[name="event_type"]');
+    const videoField = form.querySelector('.admin-video-field');
+    if (!typeSelect || !videoField) return;
+    const update = () => {
+      videoField.style.display = typeSelect.value === 'super_fight' ? '' : 'none';
+    };
+    typeSelect.addEventListener('change', update);
+    update();
+  }
+  document.querySelectorAll('.admin-event-form').forEach(toggleVideoField);
+</script>
+
+{% endblock %}
