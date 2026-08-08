@@ -8,14 +8,18 @@
       },
       {
         "rank": 2,
-        "name": "Farhan"
-      },
-      {
-        "rank": 3,
         "name": "Ayan"
       },
       {
+        "rank": 3,
+        "name": "Farhan"
+      },
+      {
         "rank": 4,
+        "name": "Meeshan Ali"
+      },
+      {
+        "rank": 5,
         "name": "Ahad"
       }
     ],
@@ -34,6 +38,10 @@
       },
       {
         "rank": 4,
+        "name": "Ayan"
+      },
+      {
+        "rank": 5,
         "name": "Ahad"
       }
     ]
@@ -43,7 +51,7 @@
     "rows": [
       {
         "rank": 1,
-        "name": "Abdullah Jan Sani"
+        "name": "Abdullah Jan "
       },
       {
         "rank": 2,
@@ -55,30 +63,38 @@
       },
       {
         "rank": 4,
-        "name": "---"
+        "name": "Zain Ijaz"
+      },
+      {
+        "rank": 5,
+        "name": "Abdullah Khan"
       }
     ],
     "left_rows": [
       {
         "rank": 1,
-        "name": "Sajjad"
+        "name": "Sajjad Khan"
       },
       {
         "rank": 2,
-        "name": "Abdullah Jan"
+        "name": "Shahwaiz"
       },
       {
         "rank": 3,
-        "name": "Hamid"
+        "name": "Abdullah Khan"
       },
       {
         "rank": 4,
-        "name": "---"
+        "name": "Abdullah Jan"
+      },
+      {
+        "rank": 5,
+        "name": "Hamid"
       }
     ]
   },
   {
-    "name": "-80kg Class",
+    "name": "Open Class",
     "rows": [
       {
         "rank": 1,
@@ -94,7 +110,11 @@
       },
       {
         "rank": 4,
-        "name": "Shehzad"
+        "name": "Shehzad Khan"
+      },
+      {
+        "rank": 5,
+        "name": "Shamas Hashmi"
       }
     ],
     "left_rows": [
@@ -104,15 +124,19 @@
       },
       {
         "rank": 2,
-        "name": "Shamas"
+        "name": "Shamas Hashmi"
       },
       {
         "rank": 3,
-        "name": "Shehzad"
+        "name": "Shehzad Khan"
       },
       {
         "rank": 4,
-        "name": "---"
+        "name": "Sajjad Khan"
+      },
+      {
+        "rank": 5,
+        "name": "Tabish Ghouri"
       }
     ]
   }

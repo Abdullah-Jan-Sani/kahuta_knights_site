@@ -29,6 +29,25 @@
 -->
 </section>
 
+{% if nearest_tournament %}
+<div class="popup-overlay" id="nearest-event-popup" aria-live="polite" role="dialog" aria-modal="true">
+  <div class="popup-card">
+    <div class="popup-header">
+      <div>
+        <p class="popup-eyebrow">Nearest Tournament</p>
+        <h2 class="popup-title">{{ nearest_tournament.title }}</h2>
+        <p class="popup-meta">{{ nearest_tournament.day }} {{ nearest_tournament.month }} {{ nearest_tournament.year }}{% if nearest_tournament.location %} · {{ nearest_tournament.location }}{% endif %}</p>
+      </div>
+      <button id="popup-close-btn" class="popup-close" aria-label="Close nearest tournament popup">×</button>
+    </div>
+    <p class="popup-description">{{ nearest_tournament.description or 'Get ready for the next tournament coming soon.' }}</p>
+    <div class="popup-actions">
+      <a href="{{ url_for('events') }}" class="btn btn-primary">View All Events</a>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 <section class="section core-team">
   <div class="section-heading">
     <span class="eyebrow">The Front Line</span>
@@ -54,5 +73,29 @@
 
   
 </section>
+
+{% if nearest_tournament %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const popup = document.getElementById('nearest-event-popup');
+    const closeButton = document.getElementById('popup-close-btn');
+    if (!popup || !closeButton) return;
+
+    setTimeout(function () {
+      popup.classList.add('open');
+    }, 250);
+
+    closeButton.addEventListener('click', function () {
+      popup.classList.remove('open');
+    });
+
+    popup.addEventListener('click', function (event) {
+      if (event.target === popup) {
+        popup.classList.remove('open');
+      }
+    });
+  });
+</script>
+{% endif %}
 
 {% endblock %}

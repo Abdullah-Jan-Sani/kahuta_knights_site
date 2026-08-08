@@ -158,10 +158,11 @@ DEFAULT_RANKINGS = [
             {"rank": 2, "name": "Shahwaiz"},
             {"rank": 3, "name": "Abdullah Khan"},
             {"rank": 4, "name": "Abdullah Jan"},
+            
         ],
     },
     {
-        "name": "-80kg Class",
+        "name": "Open Class",
         "rows": [
             {"rank": 1, "name": "Hamza Khan"},
             {"rank": 2, "name": "Sajjad Khan"},
@@ -289,9 +290,21 @@ def inject_globals():
 
 @app.route("/")
 def home():
+    events = load_events()
+    nearest_tournament = next(
+        (
+            event for event in events
+            if event.get("status") == "Upcoming" and event.get("event_type") == "tournament"
+        ),
+        None,
+    )
     return render_template(
-        "home.html", active="home",
-        core_members=CORE_MEMBERS, team_members=TEAM_MEMBERS, events=load_events()
+        "home.html",
+        active="home",
+        core_members=CORE_MEMBERS,
+        team_members=TEAM_MEMBERS,
+        events=events,
+        nearest_tournament=nearest_tournament,
     )
 
 
@@ -355,29 +368,25 @@ def register_event():
 
 @app.route("/admin/access", methods=["GET", "POST"])
 def admin_access():
-    target = request.args.get("target", "event")
+    target = request.args.get("target", "events")
 
     if session.get("admin_authenticated") and request.method == "GET":
         if target == "team":
             return redirect(url_for("admin_team_registration"))
         if target in ("rankings", "admin_rankings"):
             return redirect(url_for("admin_rankings"))
-        if target in ("events", "admin_events"):
-            return redirect(url_for("admin_events"))
-        return redirect(url_for("admin_event_registration"))
+        return redirect(url_for("admin_events"))
 
     if request.method == "POST":
         password = request.form.get("password", "")
-        target = request.form.get("target", "event")
+        target = request.form.get("target", "events")
         if password == ADMIN_PASSWORD:
             session["admin_authenticated"] = True
             if target == "team":
                 return redirect(url_for("admin_team_registration"))
             if target == "rankings" or target == "admin_rankings":
                 return redirect(url_for("admin_rankings"))
-            if target == "events" or target == "admin_events":
-                return redirect(url_for("admin_events"))
-            return redirect(url_for("admin_event_registration"))
+            return redirect(url_for("admin_events"))
         flash("Incorrect password. Please try again.", "error")
 
     return render_template(

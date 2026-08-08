@@ -6,7 +6,6 @@
   <h1>Manage Events</h1>
   <p>Add, edit, or remove tournaments and super fights. Upload a poster for any event. For super fights, add links to watch the video on YouTube, TikTok, or Instagram.</p>
   <div class="admin-nav-buttons">
-    <a href="{{ url_for('admin_event_registration') }}" class="btn {{ 'btn-primary' if admin_tab == 'event_registration' else 'btn-ghost' }}">Event Registrations</a>
     <a href="{{ url_for('admin_team_registration') }}" class="btn {{ 'btn-primary' if admin_tab == 'team_registration' else 'btn-ghost' }}">Team Registrations</a>
     <a href="{{ url_for('admin_access', target='rankings') }}" class="btn {{ 'btn-primary' if admin_tab == 'rankings' else 'btn-ghost' }}">Manage Rankings</a>
     <a href="{{ url_for('admin_access', target='events') }}" class="btn {{ 'btn-primary' if admin_tab == 'events' else 'btn-ghost' }}">Manage Events</a>
