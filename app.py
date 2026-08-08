@@ -370,13 +370,6 @@ def register_event():
 def admin_access():
     target = request.args.get("target", "events")
 
-    if session.get("admin_authenticated") and request.method == "GET":
-        if target == "team":
-            return redirect(url_for("admin_team_registration"))
-        if target in ("rankings", "admin_rankings"):
-            return redirect(url_for("admin_rankings"))
-        return redirect(url_for("admin_events"))
-
     if request.method == "POST":
         password = request.form.get("password", "")
         target = request.form.get("target", "events")
@@ -388,6 +381,8 @@ def admin_access():
                 return redirect(url_for("admin_rankings"))
             return redirect(url_for("admin_events"))
         flash("Incorrect password. Please try again.", "error")
+    elif session.get("admin_authenticated"):
+        flash("Please re-enter the admin password to continue.", "error")
 
     return render_template(
         "admin_access.html",
