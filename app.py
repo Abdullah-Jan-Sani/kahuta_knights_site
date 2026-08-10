@@ -197,6 +197,29 @@ def save_csv(file_path, headers, row):
         writer.writerow(row)
 
 
+def save_csv_rows(file_path, fieldnames, rows):
+    """Write a full list of CSV rows with explicit headers."""
+    with open(file_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def save_team_registration(row):
+    """Persist team registration rows and include an approval status."""
+    rows = read_csv_rows(TEAM_DATA_FILE)
+    for existing_row in rows:
+        existing_row.setdefault("Status", "Pending")
+
+    row.setdefault("Status", "Pending")
+    rows.append(row)
+    save_csv_rows(
+        TEAM_DATA_FILE,
+        ["Timestamp", "Full Name", "Phone", "Email", "Age", "Weight", "Status"],
+        rows,
+    )
+
+
 def read_csv_rows(file_path):
     """Read CSV rows as dictionaries, or return an empty list if the file is missing."""
     if not os.path.isfile(file_path):
@@ -419,7 +442,17 @@ def admin_event_registration():
 @login_required
 def admin_team_registration():
     rows = read_csv_rows(TEAM_DATA_FILE)
-    columns = rows[0].keys() if rows else ["Timestamp", "Full Name", "Phone", "Email", "Age", "Weight"]
+    for index, row in enumerate(rows):
+        row.setdefault("Status", "Pending")
+        row["_row_index"] = index
+
+    if rows:
+        columns = [c for c in rows[0].keys() if not c.startswith("_")]
+        if "Actions" not in columns:
+            columns.append("Actions")
+    else:
+        columns = ["Timestamp", "Full Name", "Phone", "Email", "Age", "Weight", "Status", "Actions"]
+
     return render_template(
         "admin_registration.html",
         active="admin",
@@ -430,6 +463,35 @@ def admin_team_registration():
         columns=columns,
         note="Review team join requests before adding new members.",
     )
+
+
+@app.route("/admin/team_registration/<int:row_index>/<action>", methods=["POST"])
+@login_required
+def admin_team_registration_action(row_index, action):
+    rows = read_csv_rows(TEAM_DATA_FILE)
+    if not (0 <= row_index < len(rows)):
+        flash("Team registration not found.", "error")
+        return redirect(url_for("admin_team_registration"))
+
+    for row in rows:
+        row.setdefault("Status", "Pending")
+
+    if action == "approve":
+        rows[row_index]["Status"] = "Approved"
+        flash("Team registration approved.", "success")
+    elif action == "reject":
+        rows[row_index]["Status"] = "Rejected"
+        flash("Team registration rejected.", "success")
+    else:
+        flash("Invalid action.", "error")
+        return redirect(url_for("admin_team_registration"))
+
+    save_csv_rows(
+        TEAM_DATA_FILE,
+        ["Timestamp", "Full Name", "Phone", "Email", "Age", "Weight", "Status"],
+        rows,
+    )
+    return redirect(url_for("admin_team_registration"))
 
 
 # ======================================================================
@@ -730,18 +792,14 @@ def submit():
         screenshot.save(os.path.join(app.config["UPLOAD_FOLDER"], stored_filename))
 
     if form_type == "team":
-        save_csv(
-            TEAM_DATA_FILE,
-            ["Timestamp", "Full Name", "Phone", "Email", "Age", "Weight"],
-            [
-                datetime.now().isoformat(timespec="seconds"),
-                full_name,
-                phone,
-                email,
-                age,
-                weight,
-            ],
-        )
+        save_team_registration({
+            "Timestamp": datetime.now().isoformat(timespec="seconds"),
+            "Full Name": full_name,
+            "Phone": phone,
+            "Email": email,
+            "Age": age,
+            "Weight": weight,
+        })
     else:
         save_csv(
             EVENT_DATA_FILE,

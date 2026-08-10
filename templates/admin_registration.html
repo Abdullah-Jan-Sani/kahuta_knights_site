@@ -30,6 +30,13 @@
           <td>
             {% if column == 'Screenshot File' and row[column] %}
               <a href="{{ url_for('static', filename='uploads/' ~ row[column]) }}" target="_blank" rel="noopener">View</a>
+            {% elif column == 'Actions' and admin_tab == 'team_registration' %}
+              <form action="{{ url_for('admin_team_registration_action', row_index=row._row_index, action='approve') }}" method="POST" style="display:inline">
+                <button type="submit" class="btn btn-success">Approve</button>
+              </form>
+              <form action="{{ url_for('admin_team_registration_action', row_index=row._row_index, action='reject') }}" method="POST" style="display:inline">
+                <button type="submit" class="btn btn-danger">Reject</button>
+              </form>
             {% else %}
               {{ row[column] }}
             {% endif %}
