@@ -13,6 +13,7 @@
     <a href="{{ url_for('admin_access', target='rankings') }}" class="btn {{ 'btn-primary' if admin_tab == 'rankings' else 'btn-ghost' }}">Manage Rankings</a>
     <a href="{{ url_for('admin_access', target='events') }}" class="btn {{ 'btn-primary' if admin_tab == 'events' else 'btn-ghost' }}">Manage Events</a>
   </div>
+
   {% if rows %}
   <div class="table-card">
     <table class="table">
@@ -21,27 +22,41 @@
           {% for column in columns %}
           <th>{{ column }}</th>
           {% endfor %}
+          {% if admin_tab == 'team_registration' %}
+          <th>Actions</th>
+          {% endif %}
         </tr>
       </thead>
       <tbody>
         {% for row in rows %}
+        {% set row_idx = loop.index0 %}
         <tr>
           {% for column in columns %}
           <td>
             {% if column == 'Screenshot File' and row[column] %}
               <a href="{{ url_for('static', filename='uploads/' ~ row[column]) }}" target="_blank" rel="noopener">View</a>
-            {% elif column == 'Actions' and admin_tab == 'team_registration' %}
-              <form action="{{ url_for('admin_team_registration_action', row_index=row._row_index, action='approve') }}" method="POST" style="display:inline">
-                <button type="submit" class="btn btn-success">Approve</button>
-              </form>
-              <form action="{{ url_for('admin_team_registration_action', row_index=row._row_index, action='reject') }}" method="POST" style="display:inline">
-                <button type="submit" class="btn btn-danger">Reject</button>
-              </form>
             {% else %}
               {{ row[column] }}
             {% endif %}
           </td>
           {% endfor %}
+
+          {% if admin_tab == 'team_registration' %}
+          <td>
+            <div style="display: flex; gap: 6px;">
+              <form action="{{ url_for('admin_team_registration_action', row_index=row_idx, action='approve') }}" method="POST" style="display:inline">
+                <button type="submit" class="btn btn-success" style="background-color: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">
+                  Approve
+                </button>
+              </form>
+              <form action="{{ url_for('admin_team_registration_action', row_index=row_idx, action='reject') }}" method="POST" style="display:inline">
+                <button type="submit" class="btn btn-danger" style="background-color: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">
+                  Reject
+                </button>
+              </form>
+            </div>
+          </td>
+          {% endif %}
         </tr>
         {% endfor %}
       </tbody>

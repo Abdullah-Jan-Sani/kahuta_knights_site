@@ -397,7 +397,7 @@ def admin_access():
         target = request.form.get("target", "events")
         if password == ADMIN_PASSWORD:
             session["admin_authenticated"] = True
-            if target == "team":
+            if target == "team" or target == "admin_team_registration":
                 return redirect(url_for("admin_team_registration"))
             if target == "rankings" or target == "admin_rankings":
                 return redirect(url_for("admin_rankings"))
@@ -420,6 +420,23 @@ def admin_logout():
     return redirect(url_for("home"))
 
 
+@app.route("/admin/team_registration")
+@login_required
+def admin_team_registration():
+    rows = read_csv_rows(TEAM_DATA_FILE)
+    columns = rows[0].keys() if rows else ["Timestamp", "Full Name", "Phone", "Email", "Age", "Weight", "Status"]
+    return render_template(
+        "admin_registration.html",
+        active="admin",
+        admin_tab="team_registration",
+        page_title="Team Registration Requests",
+        page_heading="Team Registration Review",
+        rows=rows,
+        columns=columns,
+        note="Review and manage applications from individuals applying to join Kahuta Knights.",
+    )
+
+
 @app.route("/admin/event_registration")
 @login_required
 def admin_event_registration():
@@ -437,33 +454,7 @@ def admin_event_registration():
     )
 
 
-@app.route("/admin/team_registration")
-@login_required
-def admin_team_registration():
-    rows = read_csv_rows(TEAM_DATA_FILE)
-    for index, row in enumerate(rows):
-        row.setdefault("Status", "Pending")
-        row["_row_index"] = index
-
-    if rows:
-        columns = [c for c in rows[0].keys() if not c.startswith("_")]
-        if "Actions" not in columns:
-            columns.append("Actions")
-    else:
-        columns = ["Timestamp", "Full Name", "Phone", "Email", "Age", "Weight", "Status", "Actions"]
-
-    return render_template(
-        "admin_registration.html",
-        active="admin",
-        admin_tab="team_registration",
-        page_title="Team Join Verification",
-        page_heading="Team Registration Verification",
-        rows=rows,
-        columns=columns,
-        note="Review team join requests before adding new members.",
-    )
-
-
+# DASHBOARD TEAM ACTION ROUTE (POST)
 @app.route("/admin/team_registration/<int:row_index>/<action>", methods=["POST"])
 @login_required
 def admin_team_registration_action(row_index, action):
@@ -475,15 +466,60 @@ def admin_team_registration_action(row_index, action):
     for row in rows:
         row.setdefault("Status", "Pending")
 
+    applicant_email = rows[row_index].get("Email", "").strip()
+    applicant_name = rows[row_index].get("Full Name", "Applicant").strip()
+
     if action == "approve":
         rows[row_index]["Status"] = "Approved"
         flash("Team registration approved.", "success")
+        
+        # Send Acceptance Email
+        if applicant_email:
+            msg = Message(
+                subject="Welcome to Kahuta Knights! Team Application Approved",
+                recipients=[applicant_email]
+            )
+            msg.html = f"""
+                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                    <h2>Congratulations, {applicant_name}!</h2>
+                    <p>Your application to join <strong>Kahuta Knights</strong> has been officially <strong>Approved</strong>.</p>
+                    <p>Welcome to the team! Our coaches will be in touch with you shortly regarding training sessions, trials, and team protocols.</p>
+                    <br>
+                    <p>Best regards,<br><strong>Kahuta Knights Management</strong></p>
+                </div>
+            """
+            try:
+                mail.send(msg)
+            except Exception as e:
+                flash(f"Approved status saved, but email notification to applicant failed: {e}", "warning")
+
     elif action == "reject":
         rows[row_index]["Status"] = "Rejected"
-        flash("Team registration rejected.", "success")
+        flash("Team registration rejected.", "error")
+
+        # Send Rejection Email
+        if applicant_email:
+            msg = Message(
+                subject="Update on your Kahuta Knights Application",
+                recipients=[applicant_email]
+            )
+            msg.html = f"""
+                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                    <h2>Hello {applicant_name},</h2>
+                    <p>Thank you for your interest in joining <strong>Kahuta Knights</strong>.</p>
+                    <p>After reviewing your submission, we regret to inform you that we are unable to accept your application at this time.</p>
+                    <p>We encourage you to keep training and apply again during our future recruitment drives.</p>
+                    <br>
+                    <p>Best regards,<br><strong>Kahuta Knights Management</strong></p>
+                </div>
+            """
+            try:
+                mail.send(msg)
+            except Exception as e:
+                flash(f"Rejected status saved, but email notification to applicant failed: {e}", "warning")
+
     else:
         flash("Invalid action.", "error")
-        return redirect(url_for("admin_team_registration"))
 
     save_csv_rows(
         TEAM_DATA_FILE,
@@ -493,7 +529,7 @@ def admin_team_registration_action(row_index, action):
     return redirect(url_for("admin_team_registration"))
 
 
-# DIRECT EMAIL ACTION ROUTE
+# DIRECT EMAIL ACTION LINK ROUTE (GET)
 @app.route("/admin/team_registration/email_action/<int:row_index>/<action>")
 @login_required
 def admin_email_action(row_index, action):
@@ -505,15 +541,60 @@ def admin_email_action(row_index, action):
     for row in rows:
         row.setdefault("Status", "Pending")
 
+    applicant_email = rows[row_index].get("Email", "").strip()
+    applicant_name = rows[row_index].get("Full Name", "Applicant").strip()
+
     if action == "approve":
         rows[row_index]["Status"] = "Approved"
-        flash(f"Approved {rows[row_index].get('Full Name', 'applicant')}'s team application.", "success")
+        flash(f"Approved {applicant_name}'s team application.", "success")
+
+        # Send Acceptance Email
+        if applicant_email:
+            msg = Message(
+                subject="Welcome to Kahuta Knights! Team Application Approved",
+                recipients=[applicant_email]
+            )
+            msg.html = f"""
+                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                    <h2>Congratulations, {applicant_name}!</h2>
+                    <p>Your application to join <strong>Kahuta Knights</strong> has been officially <strong>Approved</strong>.</p>
+                    <p>Welcome to the team! Our coaches will be in touch with you shortly regarding training sessions, trials, and team protocols.</p>
+                    <br>
+                    <p>Best regards,<br><strong>Kahuta Knights Management</strong></p>
+                </div>
+            """
+            try:
+                mail.send(msg)
+            except Exception as e:
+                flash(f"Approved status saved, but email notification to applicant failed: {e}", "warning")
+
     elif action == "reject":
         rows[row_index]["Status"] = "Rejected"
-        flash(f"Rejected {rows[row_index].get('Full Name', 'applicant')}'s team application.", "error")
+        flash(f"Rejected {applicant_name}'s team application.", "error")
+
+        # Send Rejection Email
+        if applicant_email:
+            msg = Message(
+                subject="Update on your Kahuta Knights Application",
+                recipients=[applicant_email]
+            )
+            msg.html = f"""
+                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                    <h2>Hello {applicant_name},</h2>
+                    <p>Thank you for your interest in joining <strong>Kahuta Knights</strong>.</p>
+                    <p>After reviewing your submission, we regret to inform you that we are unable to accept your application at this time.</p>
+                    <p>We encourage you to keep training and apply again during our future recruitment drives.</p>
+                    <br>
+                    <p>Best regards,<br><strong>Kahuta Knights Management</strong></p>
+                </div>
+            """
+            try:
+                mail.send(msg)
+            except Exception as e:
+                flash(f"Rejected status saved, but email notification to applicant failed: {e}", "warning")
+
     else:
         flash("Invalid action provided.", "error")
-        return redirect(url_for("admin_team_registration"))
 
     save_csv_rows(
         TEAM_DATA_FILE,
