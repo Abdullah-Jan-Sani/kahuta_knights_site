@@ -47,9 +47,9 @@ CORE_MEMBERS = [
     },
     {
         "name": "M.Zain Ijaz",
-        "role": "Team Captain",
+        "role": "Founder & Head Coach",
         "initials": "ZI",
-        "bio": "Reigning regional champion in the 80kg class, leads the roster into every event.",
+        "bio": "Founded Kahuta Knights and leads training, trials, and tournament strategy.",
     },
 ]
 
