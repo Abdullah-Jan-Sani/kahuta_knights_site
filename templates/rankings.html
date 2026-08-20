@@ -21,8 +21,8 @@
           <table class="ranking-table">
             <thead>
               <tr>
-                <th>Rank</th>
-                <th>Name</th>
+                <th class="rank-col">Rank</th>
+                <th class="name-col">Name</th>
               </tr>
             </thead>
             <tbody>
@@ -51,8 +51,8 @@
           <table class="ranking-table">
             <thead>
               <tr>
-                <th>Rank</th>
-                <th>Name</th>
+                <th class="rank-col">Rank</th>
+                <th class="name-col">Name</th>
               </tr>
             </thead>
             <tbody>
@@ -96,10 +96,10 @@
     text-align: left;
   }
 
-  /* Keep names aligned and position arrow to the far left inside padding space */
+  /* Padding offset applied to both <th> and <td> for perfect alignment */
   .name-col {
     position: relative;
-    padding-left: 1.8rem !important; /* Reserve exact space for arrow */
+    padding-left: 1.8rem !important; 
   }
 
   .rank-arrow {
