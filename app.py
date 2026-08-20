@@ -235,7 +235,25 @@ def load_rankings():
         save_rankings(DEFAULT_RANKINGS)
         return DEFAULT_RANKINGS
     with open(RANKINGS_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+
+    # Normalize legacy 'arrow' key to 'move' and ensure every entry has a move value
+    changed = False
+    for category in data:
+        for key in ("rows", "left_rows"):
+            for entry in category.get(key, []):
+                if "move" not in entry and "arrow" in entry:
+                    entry["move"] = entry.pop("arrow")
+                    changed = True
+                if "move" not in entry:
+                    entry["move"] = "none"
+                    changed = True
+
+    # Persist normalization so templates and future edits see a consistent key
+    if changed:
+        save_rankings(data)
+
+    return data
 
 
 def save_rankings(data):
@@ -543,6 +561,7 @@ def admin_rankings_add_row(cat_index, side):
     side = "rows" if side == "right" else "left_rows"
     rank = request.form.get("rank", "").strip()
     name = request.form.get("name", "").strip()
+    move = request.form.get("move", "none").strip()
 
     data = load_rankings()
     if not (0 <= cat_index < len(data)):
@@ -558,7 +577,7 @@ def admin_rankings_add_row(cat_index, side):
         flash("Rank must be a number.", "error")
         return redirect(url_for("admin_rankings"))
 
-    data[cat_index].setdefault(side, []).append({"rank": rank, "name": name})
+    data[cat_index].setdefault(side, []).append({"rank": rank, "name": name, "move": move})
     data[cat_index][side].sort(key=lambda r: r["rank"])
     save_rankings(data)
     flash("Wrestler added.", "success")
@@ -571,6 +590,7 @@ def admin_rankings_edit_row(cat_index, side, row_index):
     side = "rows" if side == "right" else "left_rows"
     rank = request.form.get("rank", "").strip()
     name = request.form.get("name", "").strip()
+    move = request.form.get("move", "none").strip()
 
     data = load_rankings()
     if not (0 <= cat_index < len(data)) or not (0 <= row_index < len(data[cat_index].get(side, []))):
@@ -586,7 +606,12 @@ def admin_rankings_edit_row(cat_index, side, row_index):
         flash("Rank must be a number.", "error")
         return redirect(url_for("admin_rankings"))
 
-    data[cat_index][side][row_index] = {"rank": rank, "name": name}
+    # Preserve other keys if present, but update rank, name, and move
+    entry = data[cat_index][side][row_index]
+    entry["rank"] = rank
+    entry["name"] = name
+    entry["move"] = move
+    data[cat_index][side][row_index] = entry
     data[cat_index][side].sort(key=lambda r: r["rank"])
     save_rankings(data)
     flash("Ranking updated.", "success")

@@ -6,6 +6,8 @@
   <h1>Manage Rankings</h1>
   <p>Add, edit, or remove wrestlers from the rankings shown on the public site.</p>
   <p><a href="{{ url_for('admin_events') }}">Manage Events</a> &middot; <a href="{{ url_for('admin_team_registration') }}">Team Registrations</a></p>
+</section>
+
 <section class="section">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -17,9 +19,10 @@
     {% endif %}
   {% endwith %}
 
-  <div class="form-card">
-    <h2>Add New Category</h2>
-    <form action="{{ url_for('admin_rankings_add_category') }}" method="POST" class="admin-inline-form">
+  <!-- Compact Add New Category Box -->
+  <div class="form-card admin-add-category-card">
+    <h3>Add New Category</h3>
+    <form action="{{ url_for('admin_rankings_add_category') }}" method="POST" class="admin-inline-form admin-category-form">
       <input type="text" name="category_name" placeholder="e.g. -90kg Class" required>
       <button type="submit" class="submit-btn">Add Category</button>
     </form>
@@ -49,13 +52,20 @@
 
         <table class="ranking-table admin-ranking-table">
           <thead>
-            <tr><th>Rank</th><th>Name</th><th>Actions</th></tr>
+            <tr><th>Rank</th><th>Name</th><th>Move</th><th>Actions</th></tr>
           </thead>
           <tbody>
             {% for row in category.rows %}
             <tr class="{{ 'rank-first' if row.rank == 1 else '' }}">
               <td><input type="number" name="rank" form="edit-{{ cat_index }}-right-{{ loop.index0 }}" value="{{ row.rank }}" min="1" class="admin-rank-input" required></td>
-              <td><input type="text" name="name" form="edit-{{ cat_index }}-right-{{ loop.index0 }}" value="{{ row.name }}" class="admin-name-input" required></td>
+              <td class="admin-name-cell"><input type="text" name="name" form="edit-{{ cat_index }}-right-{{ loop.index0 }}" value="{{ row.name }}" class="admin-name-input" required></td>
+              <td>
+                <select name="move" form="edit-{{ cat_index }}-right-{{ loop.index0 }}" class="admin-move-select admin-arrow-select">
+                  <option value="none" {% if row.move is not defined or row.move == 'none' %}selected{% endif %}>None</option>
+                  <option value="up" {% if row.move == 'up' %}selected{% endif %}>Up</option>
+                  <option value="down" {% if row.move == 'down' %}selected{% endif %}>Down</option>
+                </select>
+              </td>
               <td class="admin-actions-cell">
                 <button type="submit" form="edit-{{ cat_index }}-right-{{ loop.index0 }}" class="admin-btn admin-btn-save">Save</button>
                 <button type="submit" form="delete-{{ cat_index }}-right-{{ loop.index0 }}" class="admin-btn admin-btn-delete">Delete</button>
@@ -65,8 +75,13 @@
           </tbody>
         </table>
         <form action="{{ url_for('admin_rankings_add_row', cat_index=cat_index, side='right') }}" method="POST" class="admin-inline-form admin-add-row-form">
-          <input type="number" name="rank" placeholder="Rank" min="1" required>
+          <input type="number" name="rank" style="width: 100px;" placeholder="Rank" min="1" required>
           <input type="text" name="name" placeholder="Wrestler name" required>
+          <select name="move" class="admin-move-select">
+            <option value="none" selected>None</option>
+            <option value="up">Up</option>
+            <option value="down">Down</option>
+          </select>
           <button type="submit" class="submit-btn">Add</button>
         </form>
       </div>
@@ -83,13 +98,20 @@
 
         <table class="ranking-table admin-ranking-table">
           <thead>
-            <tr><th>Rank</th><th>Name</th><th>Actions</th></tr>
+            <tr><th>Rank</th><th>Name</th><th>Move</th><th>Actions</th></tr>
           </thead>
           <tbody>
             {% for row in category.left_rows %}
             <tr class="{{ 'rank-first' if row.rank == 1 else '' }}">
               <td><input type="number" name="rank" form="edit-{{ cat_index }}-left-{{ loop.index0 }}" value="{{ row.rank }}" min="1" class="admin-rank-input" required></td>
-              <td><input type="text" name="name" form="edit-{{ cat_index }}-left-{{ loop.index0 }}" value="{{ row.name }}" class="admin-name-input" required></td>
+              <td class="admin-name-cell"><input type="text" name="name" form="edit-{{ cat_index }}-left-{{ loop.index0 }}" value="{{ row.name }}" class="admin-name-input" required></td>
+              <td>
+                <select name="move" form="edit-{{ cat_index }}-left-{{ loop.index0 }}" class="admin-move-select admin-arrow-select">
+                  <option value="none" {% if row.move is not defined or row.move == 'none' %}selected{% endif %}>None</option>
+                  <option value="up" {% if row.move == 'up' %}selected{% endif %}>Up</option>
+                  <option value="down" {% if row.move == 'down' %}selected{% endif %}>Down</option>
+                </select>
+              </td>
               <td class="admin-actions-cell">
                 <button type="submit" form="edit-{{ cat_index }}-left-{{ loop.index0 }}" class="admin-btn admin-btn-save">Save</button>
                 <button type="submit" form="delete-{{ cat_index }}-left-{{ loop.index0 }}" class="admin-btn admin-btn-delete">Delete</button>
@@ -99,8 +121,13 @@
           </tbody>
         </table>
         <form action="{{ url_for('admin_rankings_add_row', cat_index=cat_index, side='left') }}" method="POST" class="admin-inline-form admin-add-row-form">
-          <input type="number" name="rank" placeholder="Rank" min="1" required>
+          <input type="number" name="rank" style="width: 100px;" placeholder="Rank" min="1" required>
           <input type="text" name="name" placeholder="Wrestler name" required>
+          <select name="move" class="admin-move-select">
+            <option value="none" selected>None</option>
+            <option value="up">Up</option>
+            <option value="down">Down</option>
+          </select>
           <button type="submit" class="submit-btn">Add</button>
         </form>
       </div>
@@ -111,32 +138,115 @@
 </section>
 
 <style>
-  .admin-ranking-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-  .admin-ranking-table td { padding: 0.4rem 0.5rem; }
-  .admin-rank-input { width: 4rem; }
-  .admin-name-input { width: 100%; min-width: 8rem; }
-  .admin-inline-form { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.75rem; flex-wrap: wrap; }
-  .admin-add-row-form input { padding: 0.35rem 0.5rem; }
-  .admin-btn { border: none; border-radius: 4px; padding: 0.35rem 0.75rem; cursor: pointer; font-size: 0.85rem; margin-right: 0.25rem; }
+  .section { 
+    max-width: 98% !important; 
+    width: 100%; 
+    margin: 0 auto !important; 
+  }
+
+  /* Compact Add Category Card */
+  .admin-add-category-card {
+    max-width: 1200px;
+    margin: 0 auto 28px auto;
+    padding: 18px 22px;
+    border-radius: 10px;
+  }
+
+  .admin-add-category-card h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.1rem;
+    color: var(--gold-bright, #f5cf5b);
+    font-family: var(--font-display, serif);
+  }
+
+  .admin-category-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .admin-category-form input[type="text"] {
+    min-height: unset !important;
+    height: 36px !important;
+    padding: 0.3rem 0.6rem !important;
+    font-size: 0.88rem !important;
+  }
+
+  .admin-category-form .submit-btn {
+    height: 36px;
+    padding: 0 16px;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+  }
+
+  .admin-ranking-block { 
+    margin: 0 auto 36px auto; 
+    width: 100%; 
+    max-width: 1200px; 
+  }
+
+  .admin-ranking-header { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+  .admin-ranking-block .rankings-grid { grid-template-columns: 1fr 1fr; gap: 1.25rem; justify-content: center; }
+  .table-wrapper { margin-bottom: 0.75rem; overflow-x: auto; width: 100%; }
+  
+  /* Compact Table Layout */
+  .admin-ranking-table { width: 100%; min-width: 460px; table-layout: auto; border-collapse: collapse; margin: 0 auto; }
+  .admin-ranking-table th, 
+  .admin-ranking-table td { padding: 0.3rem 0.35rem; vertical-align: middle; }
+  
+  .admin-ranking-table input[type="text"],
+  .admin-ranking-table input[type="number"],
+  .admin-ranking-table select {
+    min-height: unset !important;
+    height: 32px !important;
+    padding: 0.2rem 0.4rem !important;
+    font-size: 0.85rem !important;
+    box-sizing: border-box;
+  }
+
+  .admin-rank-input { width: 42px !important; text-align: center; }
+  .admin-name-input { width: 100% !important; min-width: 120px; }
+  .admin-arrow-select { width: 100% !important; min-width: 70px; padding-right: 0.1rem !important; }
+
+  /* Reduced Column Widths */
+  .admin-ranking-table th:nth-child(1), .admin-ranking-table td:nth-child(1) { width: 44px; }
+  .admin-ranking-table th:nth-child(2), .admin-ranking-table td:nth-child(2) { width: auto; }
+  .admin-ranking-table th:nth-child(3), .admin-ranking-table td:nth-child(3) { width: 75px; }
+  .admin-ranking-table th:nth-child(4), .admin-ranking-table td:nth-child(4) { width: 140px; white-space: nowrap; }
+
+  .admin-inline-form { display: flex; gap: 0.4rem; align-items: center; margin-top: 0.5rem; flex-wrap: wrap; }
+  .admin-add-row-form input,
+  .admin-add-row-form select {
+    min-height: unset !important;
+    height: 32px !important;
+    padding: 0.25rem 0.4rem !important;
+    font-size: 0.85rem !important;
+  }
+  .admin-add-row-form input[name="rank"] { width: 50px; }
+  .admin-add-row-form input[name="name"] { flex: 1; min-width: 120px; }
+  .admin-add-row-form .submit-btn { padding: 0 12px; height: 32px; font-size: 0.85rem; }
+
+  .admin-btn { border: none; border-radius: 4px; padding: 0.25rem 0.45rem; cursor: pointer; font-size: 0.8rem; margin-right: 0.15rem; }
   .admin-btn-save { background: #2f7d32; color: #fff; }
   .admin-btn-delete { background: #b3261e; color: #fff; }
   .admin-actions-cell { white-space: nowrap; }
+  
   .admin-logout-btn {
     display: inline-block;
     background: #b3261e;
     color: #fff;
     font-weight: 700;
-    font-size: 1.05rem;
-    padding: 0.6rem 1.5rem;
+    font-size: 0.95rem;
+    padding: 0.5rem 1.2rem;
     border-radius: 4px;
     text-decoration: none;
     letter-spacing: 0.03em;
     text-transform: uppercase;
     border: 2px solid #7a1913;
   }
-  .admin-logout-btn:hover {
-    background: #8f1e18;
-  }
+  .admin-logout-btn:hover { background: #8f1e18; }
+  .admin-name-cell { display: flex; align-items: center; gap: 0.35rem; }
 </style>
 
 {% endblock %}

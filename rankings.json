@@ -4,45 +4,55 @@
     "rows": [
       {
         "rank": 1,
-        "name": "Zain Ijaz"
+        "name": "Zain Ijaz",
+        "move": "none"
       },
       {
         "rank": 2,
-        "name": "Ayan"
+        "name": "Ayan",
+        "move": "none"
       },
       {
         "rank": 3,
-        "name": "Farhan"
+        "name": "Farhan",
+        "move": "none"
       },
       {
         "rank": 4,
-        "name": "Meeshan Ali"
+        "name": "Meeshan Ali",
+        "move": "none"
       },
       {
         "rank": 5,
-        "name": "Ahad"
+        "name": "Ahad",
+        "move": "up"
       }
     ],
     "left_rows": [
       {
         "rank": 1,
-        "name": "Zain Ijaz"
+        "name": "Zain Ijaz",
+        "move": "none"
       },
       {
         "rank": 2,
-        "name": "Meeshan Ali"
+        "name": "Meeshan Ali",
+        "move": "none"
       },
       {
         "rank": 3,
-        "name": "Farhan"
+        "name": "Farhan",
+        "move": "none"
       },
       {
         "rank": 4,
-        "name": "Ayan"
+        "name": "Ayan",
+        "move": "none"
       },
       {
         "rank": 5,
-        "name": "Ahad"
+        "name": "Ahad",
+        "move": "none"
       }
     ]
   },
@@ -51,45 +61,55 @@
     "rows": [
       {
         "rank": 1,
-        "name": "Abdullah Jan "
+        "name": "Abdullah Jan",
+        "move": "up"
       },
       {
         "rank": 2,
-        "name": "Sajjad Khan"
+        "name": "Sajjad Khan",
+        "move": "down"
       },
       {
         "rank": 3,
-        "name": "Hamid"
+        "name": "Hamid",
+        "move": "none"
       },
       {
         "rank": 4,
-        "name": "Zain Ijaz"
+        "name": "Zain Ijaz",
+        "move": "none"
       },
       {
         "rank": 5,
-        "name": "Abdullah Khan"
+        "name": "Abdullah Khan",
+        "move": "none"
       }
     ],
     "left_rows": [
       {
         "rank": 1,
-        "name": "Sajjad Khan"
+        "name": "Sajjad Khan",
+        "move": "none"
       },
       {
         "rank": 2,
-        "name": "Shahwaiz"
+        "name": "Shahwaiz",
+        "move": "none"
       },
       {
         "rank": 3,
-        "name": "Abdullah Khan"
+        "name": "Abdullah Khan",
+        "move": "none"
       },
       {
         "rank": 4,
-        "name": "Abdullah Jan"
+        "name": "Abdullah Jan",
+        "move": "none"
       },
       {
         "rank": 5,
-        "name": "Hamid"
+        "name": "Hamid",
+        "move": "none"
       }
     ]
   },
@@ -98,45 +118,55 @@
     "rows": [
       {
         "rank": 1,
-        "name": "Hamza Khan"
+        "name": "Hamza Khan",
+        "move": "none"
       },
       {
         "rank": 2,
-        "name": "Sajjad Khan"
+        "name": "Sajjad Khan",
+        "move": "none"
       },
       {
         "rank": 3,
-        "name": "Abdull Rehman"
+        "name": "Abdull Rehman",
+        "move": "none"
       },
       {
         "rank": 4,
-        "name": "Shehzad Khan"
+        "name": "Shehzad Khan",
+        "move": "none"
       },
       {
         "rank": 5,
-        "name": "Shamas Hashmi"
+        "name": "Shamas Hashmi",
+        "move": "none"
       }
     ],
     "left_rows": [
       {
         "rank": 1,
-        "name": "Abdull Rehman"
+        "name": "Abdull Rehman",
+        "move": "none"
       },
       {
         "rank": 2,
-        "name": "Shamas Hashmi"
+        "name": "Shamas Hashmi",
+        "move": "none"
       },
       {
         "rank": 3,
-        "name": "Shehzad Khan"
+        "name": "Shehzad Khan",
+        "move": "none"
       },
       {
         "rank": 4,
-        "name": "Sajjad Khan"
+        "name": "Sajjad Khan",
+        "move": "none"
       },
       {
         "rank": 5,
-        "name": "Tabish Ghouri"
+        "name": "Tabish Ghouri",
+        "move": "none"
       }
     ]
   }

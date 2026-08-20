@@ -1,12 +1,28 @@
 [
   {
+    "day": "14",
+    "month": "August",
+    "year": "2026",
+    "title": "Armwrestling Tournament",
+    "location": "International fitness Tycon Gym, Motor Chowk, Kahuta, Punjab",
+    "description": "Open Tournament organized by Kahuta Knights at Nationals.",
+    "status": "Completed",
+    "event_type": "tournament",
+    "poster_filename": "poster_20260731_153836131086_WhatsApp_Image_2026-07-23_at_9.22.33_PM.jpeg",
+    "video_links": {
+      "youtube": "",
+      "tiktok": "",
+      "instagram": ""
+    }
+  },
+  {
     "day": "8",
     "month": "August",
     "year": "2026",
     "title": "Arm Wrestling Super Fight",
     "location": "International Fitness Tycon Gym, Motor Chowk , Kahuta",
     "description": "Tabish VS Waqas Bhatti (Both Hands)",
-    "status": "Upcoming",
+    "status": "Completed",
     "event_type": "super_fight",
     "poster_filename": "poster_20260805_160724037865_1000207293.jpg",
     "video_links": {
@@ -22,25 +38,9 @@
     "title": "Arm Wrestling Super Fight",
     "location": "International Fitness Tycon Gym, Motor Chowk , Kahuta",
     "description": "Abdullah Khan VS Sikandar Satti (Right Hand)",
-    "status": "Upcoming",
+    "status": "Completed",
     "event_type": "super_fight",
     "poster_filename": "poster_20260731_154454880954_WhatsApp_Image_2026-07-31_at_7.14.27_PM.jpeg",
-    "video_links": {
-      "youtube": "",
-      "tiktok": "",
-      "instagram": ""
-    }
-  },
-  {
-    "day": "14",
-    "month": "August",
-    "year": "2026",
-    "title": "Armwrestling Tournament",
-    "location": "International fitness Tycon Gym, Motor Chowk, Kahuta, Punjab",
-    "description": "Open Tournament organized by Kahuta Knights at Nationals.",
-    "status": "Upcoming",
-    "event_type": "tournament",
-    "poster_filename": "poster_20260731_153836131086_WhatsApp_Image_2026-07-23_at_9.22.33_PM.jpeg",
     "video_links": {
       "youtube": "",
       "tiktok": "",

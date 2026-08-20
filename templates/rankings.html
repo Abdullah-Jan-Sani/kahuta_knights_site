@@ -3,61 +3,125 @@
 {% block content %}
 
 <section class="page-hero">
-  <h1>Rankings</h1>
-  <p>Current standings across the Kahuta Knights roster, by weight category.</p>
-  <p>Note: These rankings showcase top talent from across entire Kahuta, not just the Kahuta Knights Players.</p>
-  {% if is_admin %}
-    <p><a href="{{ url_for('admin_rankings') }}">Manage Rankings</a></p>
-  {% endif %}
+  <h1>Official Rankings</h1>
+  <p>Top rankings for Right Arm and Left Arm across all weight classes.</p>
 </section>
 
 <section class="section">
   {% for category in rankings %}
   <div class="ranking-block">
     <h2 class="ranking-category">{{ category.name }}</h2>
+
     <div class="rankings-grid">
+
+      <!-- Right Arm -->
       <div class="arm-ranking">
         <h3>Right Arm</h3>
-        <table class="ranking-table">
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Name</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for row in category.rows %}
-            <tr class="{{ 'rank-first' if row.rank == 1 else '' }}">
-              <td class="rank-cell">{{ row.rank }}</td>
-              <td>{{ row.name }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        <div class="table-wrapper">
+          <table class="ranking-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in category.rows %}
+              <tr class="{{ 'rank-first' if row.rank == 1 else '' }}">
+                <td class="rank-col">{{ row.rank }}</td>
+                <td class="name-col">
+                  {% if row.move == 'up' %}
+                    <span class="rank-arrow up-arrow" title="Moved up">&#9650;</span>
+                  {% elif row.move == 'down' %}
+                    <span class="rank-arrow down-arrow" title="Moved down">&#9660;</span>
+                  {% endif %}
+                  <span class="wrestler-name">{{ row.name }}</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
 
+      <!-- Left Arm -->
       <div class="arm-ranking">
         <h3>Left Arm</h3>
-        <table class="ranking-table">
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Name</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for row in category.left_rows %}
-            <tr class="{{ 'rank-first' if row.rank == 1 else '' }}">
-              <td class="rank-cell">{{ row.rank }}</td>
-              <td>{{ row.name }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        <div class="table-wrapper">
+          <table class="ranking-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in category.left_rows %}
+              <tr class="{{ 'rank-first' if row.rank == 1 else '' }}">
+                <td class="rank-col">{{ row.rank }}</td>
+                <td class="name-col">
+                  {% if row.move == 'up' %}
+                    <span class="rank-arrow up-arrow" title="Moved up">&#9650;</span>
+                  {% elif row.move == 'down' %}
+                    <span class="rank-arrow down-arrow" title="Moved down">&#9660;</span>
+                  {% endif %}
+                  <span class="wrestler-name">{{ row.name }}</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
+
     </div>
   </div>
   {% endfor %}
 </section>
+
+<style>
+  .ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .ranking-table tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .ranking-table td, 
+  .ranking-table th {
+    padding: 0.6rem 0.8rem;
+    vertical-align: middle;
+    text-align: left;
+  }
+
+  /* Keep names aligned and position arrow to the far left inside padding space */
+  .name-col {
+    position: relative;
+    padding-left: 1.8rem !important; /* Reserve exact space for arrow */
+  }
+
+  .rank-arrow {
+    position: absolute;
+    left: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.65rem;
+    line-height: 1;
+  }
+
+  .up-arrow {
+    color: #4caf50;
+  }
+
+  .down-arrow {
+    color: #f44336;
+  }
+
+  .wrestler-name {
+    display: inline-block;
+  }
+</style>
 
 {% endblock %}
