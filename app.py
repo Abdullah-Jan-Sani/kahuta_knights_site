@@ -6,17 +6,27 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
+from flask_mail import Mail, Message
 
 app = Flask(__name__)
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
-app.secret_key = os.environ.get("SECRET_KEY")
+app.secret_key = os.environ.get("SECRET_KEY", "default-fallback-key")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 
+# Mail Configuration using environment variables
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get("GMAIL_USER", "abdullahjan.siraj@gmail.com")
+app.config['MAIL_PASSWORD'] = os.environ.get("GMAIL_PASSWORD")
+app.config['MAIL_DEFAULT_SENDER'] = app.config['MAIL_USERNAME']
+
+mail = Mail(app)
+
 # ---------- Configuration ----------
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 TEAM_DATA_FILE = os.path.join(BASE_DIR, "team_registrations.csv")
 EVENT_DATA_FILE = os.path.join(BASE_DIR, "event_registrations.csv")
@@ -24,7 +34,7 @@ RANKINGS_FILE = os.path.join(BASE_DIR, "rankings.json")
 EVENTS_FILE = os.path.join(BASE_DIR, "events.json")
 ALLOWED_EXTENSIONS = {"pdf", "doc", "docx", "xls", "csv", "jpg", "jpeg", "png", "gif"}
 ALLOWED_POSTER_EXTENSIONS = {"jpg", "jpeg", "png", "gif", "webp"}
-MAX_CONTENT_LENGTH = 15 * 1024 * 1024  # 15 MB max upload (posters/screenshots only, no more video uploads)
+MAX_CONTENT_LENGTH = 15 * 1024 * 1024  # 15 MB max upload
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
@@ -34,8 +44,6 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # ======================================================================
 # PLACEHOLDER CONTENT
-# Everything below is sample data so the site has something to show.
-# Replace with real athletes, events, and standings whenever you're ready.
 # ======================================================================
 
 CORE_MEMBERS = [
@@ -104,13 +112,11 @@ TEAM_MEMBERS = CORE_MEMBERS + [
         "photo_filename": "farhan.png"
     },
 ]
-# Normalize core members so they also render correctly on the /team grid
+
 for m in TEAM_MEMBERS[:2]:
     m.setdefault("weight_class", "Core Team")
     m.setdefault("note", m.get("bio", ""))
 
-# Default events used only the very first time the app runs (to seed events.json).
-# After that, all reads/writes go through EVENTS_FILE so admin edits persist.
 DEFAULT_EVENTS = [
     {
         "day": "14",
@@ -124,11 +130,8 @@ DEFAULT_EVENTS = [
         "poster_filename": "",
         "video_links": {"youtube": "", "tiktok": "", "instagram": ""},
     },
-
 ]
 
-# Default rankings used only the very first time the app runs (to seed rankings.json).
-# After that, all reads/writes go through RANKINGS_FILE so admin edits persist.
 DEFAULT_RANKINGS = [
     {
         "name": "-60kg Class",
@@ -158,7 +161,6 @@ DEFAULT_RANKINGS = [
             {"rank": 2, "name": "Shahwaiz"},
             {"rank": 3, "name": "Abdullah Khan"},
             {"rank": 4, "name": "Abdullah Jan"},
-            
         ],
     },
     {
@@ -188,7 +190,6 @@ def allowed_poster(filename):
 
 
 def save_csv(file_path, headers, row):
-    """Append a row to a CSV file, creating headers if needed."""
     file_exists = os.path.isfile(file_path)
     with open(file_path, "a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -198,7 +199,6 @@ def save_csv(file_path, headers, row):
 
 
 def save_csv_rows(file_path, fieldnames, rows):
-    """Write a full list of CSV rows with explicit headers."""
     with open(file_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
@@ -206,7 +206,6 @@ def save_csv_rows(file_path, fieldnames, rows):
 
 
 def save_team_registration(row):
-    """Persist team registration rows and include an approval status."""
     rows = read_csv_rows(TEAM_DATA_FILE)
     for existing_row in rows:
         existing_row.setdefault("Status", "Pending")
@@ -221,7 +220,6 @@ def save_team_registration(row):
 
 
 def read_csv_rows(file_path):
-    """Read CSV rows as dictionaries, or return an empty list if the file is missing."""
     if not os.path.isfile(file_path):
         return []
     with open(file_path, newline="", encoding="utf-8") as f:
@@ -230,14 +228,12 @@ def read_csv_rows(file_path):
 
 
 def load_rankings():
-    """Load rankings from rankings.json, seeding it with defaults on first run."""
     if not os.path.isfile(RANKINGS_FILE):
         save_rankings(DEFAULT_RANKINGS)
         return DEFAULT_RANKINGS
     with open(RANKINGS_FILE, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    # Normalize legacy 'arrow' key to 'move' and ensure every entry has a move value
     changed = False
     for category in data:
         for key in ("rows", "left_rows"):
@@ -249,7 +245,6 @@ def load_rankings():
                     entry["move"] = "none"
                     changed = True
 
-    # Persist normalization so templates and future edits see a consistent key
     if changed:
         save_rankings(data)
 
@@ -257,17 +252,11 @@ def load_rankings():
 
 
 def save_rankings(data):
-    """Persist rankings to rankings.json."""
     with open(RANKINGS_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 def _event_sort_key(event):
-    """
-    Groups Upcoming (0) first, then Completed (1).
-    For Upcoming: sorts chronologically ascending (soonest date first at top).
-    For Completed: sorts chronologically descending (most recent past date at the top of the completed section).
-    """
     status = event.get("status", "Upcoming")
     status_rank = 1 if status == "Completed" else 0
     
@@ -280,18 +269,13 @@ def _event_sort_key(event):
     except ValueError:
         timestamp = 0
 
-    # If upcoming, we want smaller timestamps first (ascending -> positive timestamp)
-    # If completed, we want to control their internal order too. 
-    # Returning a tuple where status comes first ensures Upcoming is always above Completed.
     if status_rank == 0:
-        return (0, timestamp)     # Soonest upcoming date comes first
+        return (0, timestamp)
     else:
-        return (1, -timestamp)    # Reverse chronological for completed items at the bottom
+        return (1, -timestamp)
 
 
 def load_events():
-    """Load events from events.json, seeding it with defaults on first run.
-    Returns events sorted with Upcoming first (soonest first at the top), then Completed."""
     if not os.path.isfile(EVENTS_FILE):
         save_events(DEFAULT_EVENTS)
         data = DEFAULT_EVENTS
@@ -299,18 +283,15 @@ def load_events():
         with open(EVENTS_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
             
-    # Sort by status group first (Upcoming = 0, Completed = 1), 
-    # then chronologically (earliest/soonest dates first)
     return sorted(data, key=_event_sort_key, reverse=False)
 
+
 def save_events(data):
-    """Persist events to events.json."""
     with open(EVENTS_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 def login_required(view_func):
-    """Redirect to the admin login screen if the session isn't authenticated."""
     @wraps(view_func)
     def wrapped(*args, **kwargs):
         if not session.get("admin_authenticated"):
@@ -404,7 +385,7 @@ def register_event():
 
 
 # ======================================================================
-# ADMIN AUTH
+# ADMIN AUTH & ACTIONS
 # ======================================================================
 
 @app.route("/admin/access", methods=["GET", "POST"])
@@ -512,6 +493,36 @@ def admin_team_registration_action(row_index, action):
     return redirect(url_for("admin_team_registration"))
 
 
+# DIRECT EMAIL ACTION ROUTE
+@app.route("/admin/team_registration/email_action/<int:row_index>/<action>")
+@login_required
+def admin_email_action(row_index, action):
+    rows = read_csv_rows(TEAM_DATA_FILE)
+    if not (0 <= row_index < len(rows)):
+        flash("Team registration record not found.", "error")
+        return redirect(url_for("admin_team_registration"))
+
+    for row in rows:
+        row.setdefault("Status", "Pending")
+
+    if action == "approve":
+        rows[row_index]["Status"] = "Approved"
+        flash(f"Approved {rows[row_index].get('Full Name', 'applicant')}'s team application.", "success")
+    elif action == "reject":
+        rows[row_index]["Status"] = "Rejected"
+        flash(f"Rejected {rows[row_index].get('Full Name', 'applicant')}'s team application.", "error")
+    else:
+        flash("Invalid action provided.", "error")
+        return redirect(url_for("admin_team_registration"))
+
+    save_csv_rows(
+        TEAM_DATA_FILE,
+        ["Timestamp", "Full Name", "Phone", "Email", "Age", "Weight", "Status"],
+        rows,
+    )
+    return redirect(url_for("admin_team_registration"))
+
+
 # ======================================================================
 # ADMIN: RANKINGS MANAGEMENT
 # ======================================================================
@@ -606,7 +617,6 @@ def admin_rankings_edit_row(cat_index, side, row_index):
         flash("Rank must be a number.", "error")
         return redirect(url_for("admin_rankings"))
 
-    # Preserve other keys if present, but update rank, name, and move
     entry = data[cat_index][side][row_index]
     entry["rank"] = rank
     entry["name"] = name
@@ -637,7 +647,6 @@ def admin_rankings_delete_row(cat_index, side, row_index):
 # ======================================================================
 
 def _save_uploaded_file(file_storage, prefix):
-    """Save an uploaded file with a timestamped, sanitized filename. Returns the stored filename."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S%f")
     safe_name = secure_filename(file_storage.filename)
     stored_filename = f"{prefix}_{timestamp}_{safe_name}"
@@ -646,7 +655,6 @@ def _save_uploaded_file(file_storage, prefix):
 
 
 def _delete_uploaded_file(filename):
-    """Remove a previously uploaded file from disk, ignoring if it's already gone."""
     if not filename:
         return
     path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
@@ -749,7 +757,6 @@ def admin_events_edit(event_index):
             "instagram": request.form.get("instagram_link", "").strip(),
         }
     else:
-        # Not a super fight: clear any video links this event might already have.
         event["video_links"] = {"youtube": "", "tiktok": "", "instagram": ""}
 
     data[event_index] = event
@@ -773,7 +780,7 @@ def admin_events_delete(event_index):
 
 
 # ======================================================================
-# REGISTRATION SUBMISSION
+# REGISTRATION SUBMISSION ROUTE
 # ======================================================================
 
 @app.route("/submit", methods=["POST"])
@@ -817,6 +824,10 @@ def submit():
         screenshot.save(os.path.join(app.config["UPLOAD_FOLDER"], stored_filename))
 
     if form_type == "team":
+        # Calculate current length to identify index of newly appended row
+        current_rows = read_csv_rows(TEAM_DATA_FILE)
+        row_index = len(current_rows)
+
         save_team_registration({
             "Timestamp": datetime.now().isoformat(timespec="seconds"),
             "Full Name": full_name,
@@ -825,6 +836,40 @@ def submit():
             "Age": age,
             "Weight": weight,
         })
+
+        # Action links targeting administrative handler
+        approve_url = url_for('admin_email_action', row_index=row_index, action='approve', _external=True)
+        reject_url = url_for('admin_email_action', row_index=row_index, action='reject', _external=True)
+
+        admin_email = os.environ.get("ADMIN_EMAIL", "abdullahjan.siraj@gmail.com")
+
+        # HTML Email Body with Action Buttons
+        msg = Message(
+            subject=f"New Team Join Request: {full_name}",
+            recipients=[admin_email]
+        )
+        msg.html = f"""
+            <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                <h2 style="color: #333;">New Team Registration Request</h2>
+                <p>A new athlete wants to join <strong>Kahuta Knights</strong>!</p>
+                <hr>
+                <p><strong>Full Name:</strong> {full_name}</p>
+                <p><strong>Email:</strong> {email}</p>
+                <p><strong>Phone:</strong> {phone}</p>
+                <p><strong>Age:</strong> {age}</p>
+                <p><strong>Weight Class:</strong> {weight}</p>
+                <br>
+                <div style="margin-top: 15px;">
+                    <a href="{approve_url}" style="background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; margin-right: 10px;">Approve Application</a>
+                    <a href="{reject_url}" style="background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Reject Application</a>
+                </div>
+            </div>
+        """
+        try:
+            mail.send(msg)
+        except Exception as e:
+            flash(f"Submission saved, but email notification failed: {e}", "warning")
+
     else:
         save_csv(
             EVENT_DATA_FILE,
