@@ -32,6 +32,8 @@ TEAM_DATA_FILE = os.path.join(BASE_DIR, "team_registrations.csv")
 EVENT_DATA_FILE = os.path.join(BASE_DIR, "event_registrations.csv")
 RANKINGS_FILE = os.path.join(BASE_DIR, "rankings.json")
 EVENTS_FILE = os.path.join(BASE_DIR, "events.json")
+TEAM_MEMBERS_FILE = os.path.join(BASE_DIR, "team_members.json")
+
 ALLOWED_EXTENSIONS = {"pdf", "doc", "docx", "xls", "csv", "jpg", "jpeg", "png", "gif"}
 ALLOWED_POSTER_EXTENSIONS = {"jpg", "jpeg", "png", "gif", "webp"}
 MAX_CONTENT_LENGTH = 15 * 1024 * 1024  # 15 MB max upload
@@ -43,79 +45,95 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
 # ======================================================================
-# PLACEHOLDER CONTENT
+# DYNAMIC DATA HELPERS & PLACEHOLDERS
 # ======================================================================
 
 CORE_MEMBERS = [
     {
         "name": "Abdullah Jan Sani",
         "role": "Founder & Head Coach",
-        "initials": "Aj",
+        "initials": "AJ",
         "bio": "Founded Kahuta Knights and leads training, trials, and tournament strategy.",
+        "weight_class": "Core Team",
+        "note": "Founded Kahuta Knights and leads training, trials, and tournament strategy.",
     },
     {
         "name": "M.Zain Ijaz",
         "role": "Founder & Head Coach",
         "initials": "ZI",
         "bio": "Founded Kahuta Knights and leads training, trials, and tournament strategy.",
+        "weight_class": "Core Team",
+        "note": "Founded Kahuta Knights and leads training, trials, and tournament strategy.",
     },
 ]
 
-TEAM_MEMBERS = CORE_MEMBERS + [
-    {
-        "name": "Abdullah Jan Sani",
-        "weight_class": "-70kg Class",
-        "initials": "Aj",
-        "note": "Current Champion Right Hand.",
-        "photo_filename": "abdullah.png"
-    },
-    {
-        "name": "M.Zain Ijaz",
-        "weight_class": "-60kg Class",
-        "initials": "ZI",
-        "note": "Current Champion Both Hands.",
-        "photo_filename": "zain.png"
-    },
-    {
-        "name": "Waqas Bhatti",
-        "weight_class": "-80kg Class",
-        "initials": "WB",
-        "note": "",
-        "photo_filename": "waqas.png"
-    },
-    {
-        "name": "Hamza Khan",
-        "weight_class": "-80kg Class",
-        "initials": "HK",
-        "note": "Current Champion Right Hand.",
-        "photo_filename": "hamza.png"
-    },
-    {
-        "name": "Skiandar Satti",
-        "weight_class": "80kg+ Class",
-        "initials": "SS",
-        "note": "",
-        "photo_filename": "sikandar.png"
-    },
-    {
-        "name": "Sajjad Khan",
-        "weight_class": "-70kg Class",
-        "initials": "SK",
-        "note": "Current Champion Left Hand",
-        "photo_filename": "sajjad.png"
-    },
-    {
-        "name": "Farhan",
-        "initials": "F",
-        "weight_class": "-60KG CLASS",
-        "note": "",
-        "photo_filename": "farhan.png"
-    },
-]
+def load_team_members():
+    if not os.path.isfile(TEAM_MEMBERS_FILE):
+        return []
+    with open(TEAM_MEMBERS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-for m in TEAM_MEMBERS[:2]:
-    m.setdefault("weight_class", "Core Team")
-    m.setdefault("note", m.get("bio", ""))
+def save_team_members(members):
+    with open(TEAM_MEMBERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(members, f, indent=2, ensure_ascii=False)
+
+def get_initials(name):
+    parts = name.strip().split()
+    if not parts:
+        return ""
+    if len(parts) == 1:
+        return parts[0][:2].upper()
+    return f"{parts[0][0]}{parts[-1][0]}".upper()
+
+def append_approved_member(full_name, weight_class):
+    members = load_team_members()
+    
+    # Check for duplicate entry by name
+    if any(m.get("name", "").lower() == full_name.lower() for m in members):
+        return
+        
+    formatted_weight = f"{weight_class}kg Class" if weight_class and "class" not in weight_class.lower() else weight_class
+
+    new_member = {
+        "name": full_name,
+        "weight_class": formatted_weight or "Member",
+        "initials": get_initials(full_name),
+        "note": "Official Team Member",
+        "photo_filename": ""
+    }
+    members.append(new_member)
+    save_team_members(members)
+
+def process_approval(applicant_name, applicant_email, applicant_weight):
+    # 1. Automatically append to team roster JSON
+    append_approved_member(applicant_name, applicant_weight)
+
+    # 2. Dispatch Acceptance Email with WhatsApp Group Link
+    whatsapp_link = os.environ.get("WHATSAPP_GROUP_LINK", "#")
+    if applicant_email:
+        msg = Message(
+            subject="Welcome to Kahuta Knights! Team Application Approved",
+            recipients=[applicant_email]
+        )
+        msg.html = f"""
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <h2>Congratulations, {applicant_name}!</h2>
+                <p>Your application to join <strong>Kahuta Knights</strong> has been officially <strong>Approved</strong>.</p>
+                <p>You have been added to our official team roster on the website!</p>
+                
+                <p><strong>Join Official WhatsApp Group:</strong></p>
+                <p>
+                    <a href="{whatsapp_link}" style="background-color: #25D366; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                        Join WhatsApp Group
+                    </a>
+                </p>
+                <p>Best regards,<br><strong>Kahuta Knights Management</strong></p>
+            </div>
+        """
+        try:
+            mail.send(msg)
+        except Exception as e:
+            flash(f"Approved status saved, but email notification failed: {e}", "warning")
 
 DEFAULT_EVENTS = [
     {
@@ -313,18 +331,16 @@ def inject_globals():
 @app.route("/")
 def home():
     events = load_events()
+    team_members = load_team_members()
     nearest_tournament = next(
-        (
-            event for event in events
-            if event.get("status") == "Upcoming" and event.get("event_type") == "tournament"
-        ),
+        (event for event in events if event.get("status") == "Upcoming" and event.get("event_type") == "tournament"),
         None,
     )
     return render_template(
         "home.html",
         active="home",
         core_members=CORE_MEMBERS,
-        team_members=TEAM_MEMBERS,
+        team_members=team_members,
         events=events,
         nearest_tournament=nearest_tournament,
     )
@@ -352,7 +368,7 @@ def rankings():
 
 @app.route("/team")
 def team():
-    return render_template("team.html", active="team", team_members=TEAM_MEMBERS)
+    return render_template("team.html", active="team", team_members=load_team_members())
 
 
 @app.route("/contact")
@@ -468,36 +484,17 @@ def admin_team_registration_action(row_index, action):
 
     applicant_email = rows[row_index].get("Email", "").strip()
     applicant_name = rows[row_index].get("Full Name", "Applicant").strip()
+    applicant_weight = rows[row_index].get("Weight", "").strip()
 
     if action == "approve":
         rows[row_index]["Status"] = "Approved"
-        flash("Team registration approved.", "success")
-        
-        # Send Acceptance Email
-        if applicant_email:
-            msg = Message(
-                subject="Welcome to Kahuta Knights! Team Application Approved",
-                recipients=[applicant_email]
-            )
-            msg.html = f"""
-                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                    <h2>Congratulations, {applicant_name}!</h2>
-                    <p>Your application to join <strong>Kahuta Knights</strong> has been officially <strong>Approved</strong>.</p>
-                    <p>Welcome to the team! Our coaches will be in touch with you shortly regarding training sessions, trials, and team protocols.</p>
-                    <br>
-                    <p>Best regards,<br><strong>Kahuta Knights Management</strong></p>
-                </div>
-            """
-            try:
-                mail.send(msg)
-            except Exception as e:
-                flash(f"Approved status saved, but email notification to applicant failed: {e}", "warning")
+        process_approval(applicant_name, applicant_email, applicant_weight)
+        flash(f"{applicant_name} approved, added to the roster, and sent the WhatsApp invite!", "success")
 
     elif action == "reject":
         rows[row_index]["Status"] = "Rejected"
         flash("Team registration rejected.", "error")
 
-        # Send Rejection Email
         if applicant_email:
             msg = Message(
                 subject="Update on your Kahuta Knights Application",
@@ -543,36 +540,17 @@ def admin_email_action(row_index, action):
 
     applicant_email = rows[row_index].get("Email", "").strip()
     applicant_name = rows[row_index].get("Full Name", "Applicant").strip()
+    applicant_weight = rows[row_index].get("Weight", "").strip()
 
     if action == "approve":
         rows[row_index]["Status"] = "Approved"
-        flash(f"Approved {applicant_name}'s team application.", "success")
-
-        # Send Acceptance Email
-        if applicant_email:
-            msg = Message(
-                subject="Welcome to Kahuta Knights! Team Application Approved",
-                recipients=[applicant_email]
-            )
-            msg.html = f"""
-                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                    <h2>Congratulations, {applicant_name}!</h2>
-                    <p>Your application to join <strong>Kahuta Knights</strong> has been officially <strong>Approved</strong>.</p>
-                    <p>Welcome to the team! Our coaches will be in touch with you shortly regarding training sessions, trials, and team protocols.</p>
-                    <br>
-                    <p>Best regards,<br><strong>Kahuta Knights Management</strong></p>
-                </div>
-            """
-            try:
-                mail.send(msg)
-            except Exception as e:
-                flash(f"Approved status saved, but email notification to applicant failed: {e}", "warning")
+        process_approval(applicant_name, applicant_email, applicant_weight)
+        flash(f"Approved {applicant_name}'s team application and sent WhatsApp invite.", "success")
 
     elif action == "reject":
         rows[row_index]["Status"] = "Rejected"
         flash(f"Rejected {applicant_name}'s team application.", "error")
 
-        # Send Rejection Email
         if applicant_email:
             msg = Message(
                 subject="Update on your Kahuta Knights Application",
@@ -905,7 +883,6 @@ def submit():
         screenshot.save(os.path.join(app.config["UPLOAD_FOLDER"], stored_filename))
 
     if form_type == "team":
-        # Calculate current length to identify index of newly appended row
         current_rows = read_csv_rows(TEAM_DATA_FILE)
         row_index = len(current_rows)
 
@@ -918,13 +895,11 @@ def submit():
             "Weight": weight,
         })
 
-        # Action links targeting administrative handler
         approve_url = url_for('admin_email_action', row_index=row_index, action='approve', _external=True)
         reject_url = url_for('admin_email_action', row_index=row_index, action='reject', _external=True)
 
         admin_email = os.environ.get("ADMIN_EMAIL", "abdullahjan.siraj@gmail.com")
 
-        # HTML Email Body with Action Buttons
         msg = Message(
             subject=f"New Team Join Request: {full_name}",
             recipients=[admin_email]

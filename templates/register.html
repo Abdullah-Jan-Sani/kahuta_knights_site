@@ -2,6 +2,15 @@
 {% block title %}{{ page_title }} | Kahuta Knights{% endblock %}
 {% block content %}
 
+<!-- Status Modal Popup -->
+<div id="statusModal" class="modal-overlay" style="display: none;">
+  <div class="modal-card">
+    <h3>Application Received</h3>
+    <p>Your application has been received by the management of Kahuta Knights and it will take almost 24 hours to review and take a decision. Please wait for 24 hours and check your email.</p>
+    <button type="button" id="modalOkBtn" class="modal-btn">OK</button>
+  </div>
+</div>
+
 <section class="page-hero">
   <h1>{{ page_title }}</h1>
   <p>{{ page_description }}</p>
@@ -10,17 +19,7 @@
 <section class="section register-section">
   <div class="form-card">
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="flash-messages">
-          {% for category, message in messages %}
-            <div class="flash {{ category }}">{{ message }}</div>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
-
-    <form action="{{ url_for('submit') }}" method="POST" enctype="multipart/form-data">
+    <form id="registrationForm" action="{{ url_for('submit') }}" method="POST" enctype="multipart/form-data">
       <input type="hidden" name="form_type" value="{{ form_type }}">
 
       <div class="form-row">
@@ -89,6 +88,84 @@
     </form>
   </div>
 </section>
+
+<style>
+/* Modal Popup Styling */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+.modal-card {
+  background: #181818;
+  border: 1px solid #d4af37;
+  border-radius: 10px;
+  max-width: 450px;
+  width: 100%;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+}
+
+.modal-card h3 {
+  color: #d4af37;
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+}
+
+.modal-card p {
+  color: #dddddd;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 25px;
+}
+
+.modal-btn {
+  background-color: #d4af37;
+  color: #000;
+  font-weight: bold;
+  border: none;
+  padding: 10px 30px;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.modal-btn:hover {
+  opacity: 0.85;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const regForm = document.getElementById('registrationForm');
+  const statusModal = document.getElementById('statusModal');
+  const modalOkBtn = document.getElementById('modalOkBtn');
+  const formType = "{{ form_type }}";
+
+  if (regForm && formType === 'team') {
+    regForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      statusModal.style.display = 'flex';
+    });
+
+    modalOkBtn.addEventListener('click', function() {
+      statusModal.style.display = 'none';
+      regForm.submit();
+    });
+  }
+});
+</script>
 
 {% if form_type == 'event' %}
 <script>
