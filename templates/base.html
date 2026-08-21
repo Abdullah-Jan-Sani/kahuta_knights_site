@@ -38,7 +38,7 @@
   {% block content %}{% endblock %}
 </main>
 
-<footer class="site-footer">
+<footer class="site-footer reveal">
   <div class="footer-crest">
     <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Kahuta Knights">
   </div>
@@ -47,6 +47,50 @@
     <p>&copy; {{ current_year }} Kahuta Knights Armwrestling Group. For inquiries: 03448583226</p>
   </div>
 </footer>
+
+<script>
+  // Reveal-on-scroll with Intersection Observer
+  (function () {
+    const reveals = document.querySelectorAll('.reveal');
+    if (!reveals.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.12,
+        rootMargin: '0px 0px -40px 0px'
+      }
+    );
+
+    reveals.forEach((el) => observer.observe(el));
+  })();
+
+  // Smooth header shadow on scroll
+  (function () {
+    const header = document.querySelector('.site-header');
+    if (!header) return;
+
+    let lastY = 0;
+    window.addEventListener('scroll', () => {
+      const y = window.scrollY;
+      if (y > 30) {
+        header.style.boxShadow = '0 4px 24px rgba(0,0,0,0.45)';
+        header.style.borderBottomColor = 'rgba(212,175,55,0.4)';
+      } else {
+        header.style.boxShadow = 'none';
+        header.style.borderBottomColor = 'rgba(212,175,55,0.25)';
+      }
+      lastY = y;
+    }, { passive: true });
+  })();
+</script>
 
 </body>
 </html>
