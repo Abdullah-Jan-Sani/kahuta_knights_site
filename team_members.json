@@ -54,5 +54,19 @@
     "initials": "MI",
     "note": "Official Team Member",
     "photo_filename": ""
+  },
+  {
+    "name": "Abdullah",
+    "weight_class": "65kg Class",
+    "initials": "AB",
+    "note": "Official Team Member",
+    "photo_filename": ""
+  },
+  {
+    "name": "sad",
+    "weight_class": "55kg Class",
+    "initials": "SA",
+    "note": "Official Team Member",
+    "photo_filename": ""
   }
 ]

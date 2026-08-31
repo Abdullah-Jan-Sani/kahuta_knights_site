@@ -1,8 +1,11 @@
 # Kahuta Knights Armwrestling — Full Website
 
-A multi-page Flask site: home page with logo hero + core team, an events
-timeline, a rankings leaderboard, a full team roster, a contact page, and the
-trials registration form (fee screenshot upload) all sharing one theme.
+## Features
+- **Multi-Page Layout**: Includes Home, Team Roster, Rankings, Events, Contact, and Trials Registration pages.
+- **Dynamic Content (No DB Required)**: Roster, events, and rankings are driven by simple Python dictionaries in `app.py`. Update the site by just changing the text in the file.
+- **Registration System**: Collects athlete details and fee payment screenshots.
+- **CSV Data Storage**: Automatically saves all trial registrations to `registrations.csv`.
+- **Responsive Design**: Custom CSS that works seamlessly on desktop and mobile devices.
 
 ## File structure
 ```
@@ -29,23 +32,6 @@ kahuta_knights_site/
     └── uploads/            # Fee-payment screenshots land here
 ```
 
-## ⚠️ Placeholder content — replace before going live
-Since no athlete photos, event list, or rankings were provided, the site ships
-with sample data so every page has something to show:
-
-- **Core team & roster** (`app.py`, `CORE_MEMBERS` / `TEAM_MEMBERS`): names,
-  roles, and gold initial-circles stand in for real photos. Add photos to
-  `static/images/members/` and swap the `<span>{{ member.initials }}</span>`
-  block in `home.html` / `team.html` for an `<img>` tag once you have them.
-- **Events** (`app.py`, `EVENTS`): sample tournament dates/locations — edit
-  directly in `app.py`.
-- **Rankings** (`app.py`, `RANKINGS`): sample standings by weight class —
-  edit directly in `app.py`.
-- **Contact page**: has real phone/payment details from your original form,
-  but the Instagram/Facebook line is a placeholder — add real links.
-
-Everything above lives as plain Python lists/dicts at the top of `app.py`,
-so no database is needed to update it — just edit the values and redeploy.
 
 ## Run it locally
 ```bash
@@ -57,13 +43,18 @@ python app.py
 ```
 Open http://127.0.0.1:5000
 
+## How to Update Site Content
+Because this site doesn't require a complex SQL database, updating content is incredibly easy. Open app.py in any text editor and look for the uppercase variables at the top:
+
+CORE_MEMBERS & TEAM_MEMBERS: Edit names, weight classes, and stats here.
+
+EVENTS: Add or remove upcoming tournaments and seminars.
+
+RANKINGS: Update the top 2 pullers for each weight class.
+
+Adding Photos: Right now, the site uses gold circles with initials as placeholders. Once you have photos of the team, add them to static/images/members/, and in team.html and home.html, replace the <div class="avatar-circle">...</div> with an <img src="..."> tag pointing to your image.
+
 ## Deploy
-Works the same way as the registration-only version:
-- **Render / Cloud Run**: the included `Dockerfile` is picked up automatically.
 - **PythonAnywhere**: upload the folder, point the WSGI config at `app.py`,
   no Dockerfile needed there.
 
-Reminder: on hosts without persistent storage (e.g. Render's free tier),
-`registrations.csv` and `static/uploads/` can be wiped on restart. Use
-PythonAnywhere (persistent disk) if you need registration data to survive
-long-term, or move to a proper database/cloud storage later.
