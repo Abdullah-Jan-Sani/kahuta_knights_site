@@ -108,25 +108,45 @@ def process_approval(applicant_name, applicant_email, applicant_weight):
     # 1. Automatically append to team roster JSON
     append_approved_member(applicant_name, applicant_weight)
 
-    # 2. Dispatch Acceptance Email with WhatsApp Group Link
+    # 2. Dispatch Acceptance Email with Mobile-Friendly WhatsApp Link
     whatsapp_link = os.environ.get("WHATSAPP_GROUP_LINK", "#")
+    if whatsapp_link and not whatsapp_link.startswith("http"):
+        whatsapp_link = f"https://{whatsapp_link}"
+
     if applicant_email:
         msg = Message(
             subject="Welcome to Kahuta Knights! Team Application Approved",
             recipients=[applicant_email]
         )
         msg.html = f"""
-            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                <h2>Congratulations, {applicant_name}!</h2>
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #ffffff; background-color: #121212; padding: 20px; border-radius: 8px;">
+                <h2 style="color: #d4af37;">Congratulations, {applicant_name}!</h2>
                 <p>Your application to join <strong>Kahuta Knights</strong> has been officially <strong>Approved</strong>.</p>
                 <p>You have been added to our official team roster on the website!</p>
                 
                 <p><strong>Join Official WhatsApp Group:</strong></p>
-                <p>
-                    <a href="{whatsapp_link}" style="background-color: #25D366; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                <div style="margin: 20px 0;">
+                    <a href="{whatsapp_link}" 
+                       target="_blank" 
+                       rel="noopener noreferrer" 
+                       style="background-color: #25D366; 
+                              color: #ffffff; 
+                              padding: 14px 24px; 
+                              text-decoration: none; 
+                              border-radius: 6px; 
+                              font-weight: bold; 
+                              display: inline-block; 
+                              font-size: 16px; 
+                              text-align: center;">
                         Join WhatsApp Group
                     </a>
+                </div>
+                
+                <p style="color: #aaaaaa; font-size: 13px; margin-top: 15px;">
+                    If the button above does not open on your phone, copy and paste this link into your browser:<br>
+                    <a href="{whatsapp_link}" style="color: #25D366; text-decoration: underline;">{whatsapp_link}</a>
                 </p>
+                <br>
                 <p>Best regards,<br><strong>Kahuta Knights Management</strong></p>
             </div>
         """
