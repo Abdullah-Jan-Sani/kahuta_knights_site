@@ -1,5 +1,69 @@
 [
   {
+    "day": "29",
+    "month": "August",
+    "year": "2026",
+    "title": "Arm Wrestling Super Fight (unranked)",
+    "location": "International Fitness Tycon Gym, Motor Chowk , Kahuta",
+    "description": "Umair VS Sikandar (right Hand)",
+    "status": "Upcoming",
+    "event_type": "super_fight",
+    "poster_filename": "poster_20260824_070801693632_1000214757.jpg",
+    "video_links": {
+      "youtube": "",
+      "tiktok": "",
+      "instagram": ""
+    }
+  },
+  {
+    "day": "29",
+    "month": "August",
+    "year": "2026",
+    "title": "Arm Wrestling Super Fight (Unranked)",
+    "location": "International Fitness Tycon Gym, Motor Chowk , Kahuta",
+    "description": "Hamid VS Abdullah (Right Hand)",
+    "status": "Upcoming",
+    "event_type": "super_fight",
+    "poster_filename": "poster_20260825_065712720127_WhatsApp_Image_2026-08-25_at_10.41.18_AM.jpeg",
+    "video_links": {
+      "youtube": "",
+      "tiktok": "",
+      "instagram": ""
+    }
+  },
+  {
+    "day": "5",
+    "month": "september",
+    "year": "2026",
+    "title": "Arm Wrestling Super Fight (Unranked)",
+    "location": "International Fitness Tycon Gym, Motor Chowk , Kahuta",
+    "description": "Faizan Qamar VS Sikandar Satti (Right Hand)",
+    "status": "Upcoming",
+    "event_type": "super_fight",
+    "poster_filename": "poster_20260821_091908261801_WhatsApp_Image_2026-08-19_at_8.10.42_PM.jpeg",
+    "video_links": {
+      "youtube": "",
+      "tiktok": "",
+      "instagram": ""
+    }
+  },
+  {
+    "day": "5",
+    "month": "september",
+    "year": "2026",
+    "title": "Arm Wresting Fights for Open 5th Rank (Ranked)",
+    "location": "International Fitness Tycon Gym, Motor Chowk , Kahuta",
+    "description": "4 Competitors for 1 Rank (Right Hand)",
+    "status": "Upcoming",
+    "event_type": "super_fight",
+    "poster_filename": "poster_20260821_092020502961_WhatsApp_Image_2026-08-09_at_11.21.44_PM.jpeg",
+    "video_links": {
+      "youtube": "",
+      "tiktok": "",
+      "instagram": ""
+    }
+  },
+  {
     "day": "14",
     "month": "August",
     "year": "2026",
@@ -8,7 +72,7 @@
     "description": "Open Tournament organized by Kahuta Knights at Nationals.",
     "status": "Completed",
     "event_type": "tournament",
-    "poster_filename": "poster_20260731_153836131086_WhatsApp_Image_2026-07-23_at_9.22.33_PM.jpeg",
+    "poster_filename": "poster_20260821_091554977693_WhatsApp_Image_2026-07-23_at_9.22.33_PM.jpeg",
     "video_links": {
       "youtube": "",
       "tiktok": "",
@@ -24,7 +88,7 @@
     "description": "Tabish VS Waqas Bhatti (Both Hands)",
     "status": "Completed",
     "event_type": "super_fight",
-    "poster_filename": "poster_20260805_160724037865_1000207293.jpg",
+    "poster_filename": "poster_20260821_091607764263_WhatsApp_Image_2026-08-05_at_9.05.20_PM.jpeg",
     "video_links": {
       "youtube": "",
       "tiktok": "",
@@ -40,7 +104,7 @@
     "description": "Abdullah Khan VS Sikandar Satti (Right Hand)",
     "status": "Completed",
     "event_type": "super_fight",
-    "poster_filename": "poster_20260731_154454880954_WhatsApp_Image_2026-07-31_at_7.14.27_PM.jpeg",
+    "poster_filename": "poster_20260821_091618687198_WhatsApp_Image_2026-07-31_at_7.14.27_PM.jpeg",
     "video_links": {
       "youtube": "",
       "tiktok": "",
@@ -56,7 +120,7 @@
     "description": "Mustafa VS Zain Ijaz (left Hand)",
     "status": "Completed",
     "event_type": "super_fight",
-    "poster_filename": "poster_20260731_154136143843_WhatsApp_Image_2026-07-31_at_2.48.38_PM.jpeg",
+    "poster_filename": "poster_20260821_091627876593_WhatsApp_Image_2026-07-31_at_2.48.38_PM.jpeg",
     "video_links": {
       "youtube": "",
       "tiktok": "",
@@ -72,7 +136,7 @@
     "description": "Farhan VS Tabish Ghouri (Right Hand)",
     "status": "Completed",
     "event_type": "super_fight",
-    "poster_filename": "poster_20260731_154107763966_WhatsApp_Image_2026-07-31_at_2.47.49_PM.jpeg",
+    "poster_filename": "poster_20260821_091640525935_WhatsApp_Image_2026-07-31_at_2.47.49_PM.jpeg",
     "video_links": {
       "youtube": "",
       "tiktok": "https://www.tiktok.com/@kahutaknights/video/7669786216665009440?_r=1&_t=ZN-98Qx8N8E751",
@@ -88,7 +152,7 @@
     "description": "Moez Ijaz VS Abdul Ahad(Right Hand)",
     "status": "Completed",
     "event_type": "super_fight",
-    "poster_filename": "poster_20260731_154030729623_WhatsApp_Image_2026-07-31_at_5.05.55_PM.jpeg",
+    "poster_filename": "poster_20260821_091654408443_WhatsApp_Image_2026-07-31_at_5.05.55_PM.jpeg",
     "video_links": {
       "youtube": "",
       "tiktok": "https://www.tiktok.com/@kahutaknights/video/7670096587711974688?_r=1&_t=ZN-98Qx8N8E751",
@@ -104,7 +168,7 @@
     "description": "Abdullah Jan VS Sajjad Khan (Right Hand)",
     "status": "Completed",
     "event_type": "super_fight",
-    "poster_filename": "poster_20260731_154418272648_WhatsApp_Image_2026-07-15_at_12.19.30_PM.jpeg",
+    "poster_filename": "poster_20260821_091542731971_WhatsApp_Image_2026-07-15_at_12.19.30_PM.jpeg",
     "video_links": {
       "youtube": "",
       "tiktok": "https://www.tiktok.com/@kahutaknights/video/7664062845574761760?_r=1&_t=ZN-98Qx8N8E751",
@@ -120,7 +184,7 @@
     "description": "Farhan VS Abdullah Khan",
     "status": "Completed",
     "event_type": "super_fight",
-    "poster_filename": "poster_20260731_154258541545_WhatsApp_Image_2026-07-13_at_3.24.46_PM.jpeg",
+    "poster_filename": "poster_20260821_091521160779_WhatsApp_Image_2026-07-13_at_3.24.46_PM.jpeg",
     "video_links": {
       "youtube": "https://www.youtube.com/shorts/Nkb0XFUuWrI",
       "tiktok": "",

@@ -29,7 +29,7 @@
   },
   {
     "name": "Skiandar Satti",
-    "weight_class": "80kg+ Class",
+    "weight_class": "-80kg Class",
     "initials": "SS",
     "note": "",
     "photo_filename": "sikandar.png"
@@ -43,30 +43,16 @@
   },
   {
     "name": "Farhan",
+    "weight_class": "-60kg Class",
     "initials": "F",
-    "weight_class": "-60KG CLASS",
     "note": "",
     "photo_filename": "farhan.png"
   },
   {
-    "name": "Moez Ijaz",
-    "weight_class": "60kg Class",
-    "initials": "MI",
-    "note": "Official Team Member",
-    "photo_filename": ""
-  },
-  {
-    "name": "Abdullah",
-    "weight_class": "65kg Class",
-    "initials": "AB",
-    "note": "Official Team Member",
-    "photo_filename": ""
-  },
-  {
-    "name": "sad",
-    "weight_class": "55kg Class",
-    "initials": "SA",
-    "note": "Official Team Member",
-    "photo_filename": ""
+    "name": "Abdull Rehman",
+    "weight_class": "-80kg Class",
+    "initials": "AR",
+    "note": "Current Champion Left Hand",
+    "photo_filename": "rehman.png"
   }
 ]
