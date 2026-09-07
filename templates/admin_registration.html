@@ -49,6 +49,11 @@
                   Approve
                 </button>
               </form>
+              <form action="{{ url_for('admin_team_registration_action', row_index=row_idx, action='waiting_list') }}" method="POST" style="display:inline">
+                <button type="submit" class="btn btn-warning" style="background-color: #ffc107; color: black; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">
+                  Waiting List
+                </button>
+              </form>
               <form action="{{ url_for('admin_team_registration_action', row_index=row_idx, action='reject') }}" method="POST" style="display:inline">
                 <button type="submit" class="btn btn-danger" style="background-color: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">
                   Reject

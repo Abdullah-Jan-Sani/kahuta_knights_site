@@ -535,6 +535,55 @@ def admin_team_registration_action(row_index, action):
             except Exception as e:
                 flash(f"Rejected status saved, but email notification to applicant failed: {e}", "warning")
 
+    elif action == "waiting_list":
+        rows[row_index]["Status"] = "Waiting List"
+        flash(f"{applicant_name} added to waiting list and notified via email.", "info")
+
+        if applicant_email:
+            msg = Message(
+                subject="Your Kahuta Knights Application - Waiting List Status",
+                recipients=[applicant_email]
+            )
+            msg.html = f"""
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #ffffff; background-color: #121212; padding: 20px; border-radius: 8px;">
+                    <h2 style="color: #d4af37;">Hello {applicant_name},</h2>
+                    <p>Thank you for applying to join <strong>Kahuta Knights</strong>!</p>
+                    
+                    <p>We are pleased to inform you that we have received your application. After careful review of your profile, we would like to place your application on our <strong>Waiting List</strong>.</p>
+                    
+                    <h3 style="color: #d4af37; margin-top: 20px;">Next Steps Towards Team Membership</h3>
+                    <p>To proceed with your membership approval, we would like to invite you to visit our gym and participate in a <strong>practice session with our team leaders and members</strong> in your weight class. This practical evaluation will allow us to assess your skills, training level, and fit with the Kahuta Knights team.</p>
+                    
+                    <p><strong>What to expect:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>A training session with experienced team members from your weight class</li>
+                        <li>Evaluation of your technical skills and training progress</li>
+                        <li>Opportunity to connect with the team and understand our culture</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;">Upon successful completion of the practice session, we will formally approve your application and welcome you as an official member of Kahuta Knights.</p>
+                    
+                    <p style="margin-top: 15px;">Please contact our management team to schedule your gym visit and practice session at your earliest convenience. We are excited to meet you and evaluate your potential!</p>
+                    
+                    <h3 style="color: #d4af37; margin-top: 20px;">Contact Information Wattsapp</h3>
+                    <p style="margin: 10px 0;">
+                        <strong>Abdullah Jan</strong><br>
+                        Phone: <strong>0344 8583226</strong>
+                    </p>
+                    <p style="margin: 10px 0;">
+                        <strong>M. Zain Ijaz</strong><br>
+                        Phone: <strong>0343 3408358</strong>
+                    </p>
+                    
+                    <br>
+                    <p>Best regards,<br><strong>Kahuta Knights Management</strong></p>
+                </div>
+            """
+            try:
+                mail.send(msg)
+            except Exception as e:
+                flash(f"Waiting list status saved, but email notification to applicant failed: {e}", "warning")
+
     else:
         flash("Invalid action.", "error")
 
@@ -590,6 +639,56 @@ def admin_email_action(row_index, action):
                 mail.send(msg)
             except Exception as e:
                 flash(f"Rejected status saved, but email notification to applicant failed: {e}", "warning")
+
+    elif action == "waiting_list":
+        rows[row_index]["Status"] = "Waiting List"
+        flash(f"Added {applicant_name} to waiting list and sent notification email.", "info")
+
+        if applicant_email:
+            msg = Message(
+                subject="Your Kahuta Knights Application - Waiting List Status",
+                recipients=[applicant_email]
+            )
+            msg.html = f"""
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #ffffff; background-color: #121212; padding: 20px; border-radius: 8px;">
+                    <h2 style="color: #d4af37;">Hello {applicant_name},</h2>
+                    <p>Thank you for applying to join <strong>Kahuta Knights</strong>!</p>
+                    
+                    <p>We are pleased to inform you that we have received your application. After careful review of your profile, we would like to place your application on our <strong>Waiting List</strong>.</p>
+                    
+                    <h3 style="color: #d4af37; margin-top: 20px;">Next Steps Towards Team Membership</h3>
+                    <p>To proceed with your membership approval, we would like to invite you to visit our gym and participate in a <strong>practice session with our team leaders and members</strong> in your weight class. This practical evaluation will allow us to assess your skills, training level, and fit with the Kahuta Knights team.</p>
+                    
+                    <p><strong>What to expect:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>A training session with experienced team members from your weight class</li>
+                        <li>Evaluation of your technical skills and training progress</li>
+                        <li>Opportunity to connect with the team and understand our culture</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;">Upon successful completion of the practice session, we will formally approve your application and welcome you as an official member of Kahuta Knights.</p>
+                    
+                    <p style="margin-top: 15px;">Please contact our management team to schedule your gym visit and practice session at your earliest convenience. We are excited to meet you and evaluate your potential!</p>
+                    
+                    <h3 style="color: #d4af37; margin-top: 20px;">Contact Information Wattsapp</h3>
+                    <p style="margin: 10px 0;">
+                        <strong>Abdullah Jan</strong><br>
+                        Phone: <strong>0344 8583226</strong>
+                    </p>
+                    <p style="margin: 10px 0;">
+                        <strong>M. Zain Ijaz</strong><br>
+                        Phone: <strong>0343 3408358</strong>
+                    </p>
+                    
+                    <br>
+                    <p>Best regards,<br><strong>Kahuta Knights Management</strong></p>
+            
+                </div>
+            """
+            try:
+                mail.send(msg)
+            except Exception as e:
+                flash(f"Waiting list status saved, but email notification to applicant failed: {e}", "warning")
 
     else:
         flash("Invalid action provided.", "error")
@@ -916,6 +1015,7 @@ def submit():
         })
 
         approve_url = url_for('admin_email_action', row_index=row_index, action='approve', _external=True)
+        waiting_list_url = url_for('admin_email_action', row_index=row_index, action='waiting_list', _external=True)
         reject_url = url_for('admin_email_action', row_index=row_index, action='reject', _external=True)
 
         admin_email = os.environ.get("ADMIN_EMAIL", "abdullahjan.siraj@gmail.com")
@@ -937,6 +1037,7 @@ def submit():
                 <br>
                 <div style="margin-top: 15px;">
                     <a href="{approve_url}" style="background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; margin-right: 10px;">Approve Application</a>
+                    <a href="{waiting_list_url}" style="background-color: #ffc107; color: black; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; margin-right: 10px;">Waiting List</a>
                     <a href="{reject_url}" style="background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Reject Application</a>
                 </div>
             </div>
