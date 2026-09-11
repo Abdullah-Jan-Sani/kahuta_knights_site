@@ -546,6 +546,12 @@ def admin_team_registration_action(row_index, action):
         flash(f"{applicant_name} added to waiting list and notified via email.", "info")
 
         if applicant_email:
+            waitlist_whatsapp_link = os.environ.get("WHATSAPP_GROUP_LINK", "#")
+            if waitlist_whatsapp_link and not waitlist_whatsapp_link.startswith("http"):
+                waitlist_whatsapp_link = f"https://{waitlist_whatsapp_link}"
+            waitlist_whatsapp_link_2 = os.environ.get("WHATSAPP_GROUP_LINK_2", "#")
+            if waitlist_whatsapp_link_2 and not waitlist_whatsapp_link_2.startswith("http"):
+                waitlist_whatsapp_link_2 = f"https://{waitlist_whatsapp_link_2}"
             msg = Message(
                 subject="Your Kahuta Knights Application - Waiting List Status",
                 recipients=[applicant_email]
@@ -579,6 +585,10 @@ def admin_team_registration_action(row_index, action):
                     <p style="margin: 10px 0;">
                         <strong>M. Zain Ijaz</strong><br>
                         Phone: <strong>0343 3408358</strong>
+                    </p>
+                    <p style="margin: 15px 0;">
+                        <strong>Official Team Updates Group :</strong><br>
+                        <a href="{waitlist_whatsapp_link_2}" style="color: #25D366; text-decoration: underline;">{waitlist_whatsapp_link_2}</a>
                     </p>
                     
                     <br>
@@ -651,6 +661,12 @@ def admin_email_action(row_index, action):
         flash(f"Added {applicant_name} to waiting list and sent notification email.", "info")
 
         if applicant_email:
+            waitlist_whatsapp_link = os.environ.get("WHATSAPP_GROUP_LINK", "#")
+            if waitlist_whatsapp_link and not waitlist_whatsapp_link.startswith("http"):
+                waitlist_whatsapp_link = f"https://{waitlist_whatsapp_link}"
+            waitlist_whatsapp_link_2 = os.environ.get("WHATSAPP_GROUP_LINK_2", "#")
+            if waitlist_whatsapp_link_2 and not waitlist_whatsapp_link_2.startswith("http"):
+                waitlist_whatsapp_link_2 = f"https://{waitlist_whatsapp_link_2}"
             msg = Message(
                 subject="Your Kahuta Knights Application - Waiting List Status",
                 recipients=[applicant_email]
@@ -684,6 +700,14 @@ def admin_email_action(row_index, action):
                     <p style="margin: 10px 0;">
                         <strong>M. Zain Ijaz</strong><br>
                         Phone: <strong>0343 3408358</strong>
+                    </p>
+                    <p style="margin: 15px 0;">
+                        <strong>Official Team WhatsApp Group:</strong><br>
+                        <a href="{waitlist_whatsapp_link}" style="color: #25D366; text-decoration: underline;">{waitlist_whatsapp_link}</a>
+                    </p>
+                    <p style="margin: 15px 0;">
+                        <strong>Official Team WhatsApp Group (2):</strong><br>
+                        <a href="{waitlist_whatsapp_link_2}" style="color: #25D366; text-decoration: underline;">{waitlist_whatsapp_link_2}</a>
                     </p>
                     
                     <br>
