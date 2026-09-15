@@ -5,18 +5,29 @@
 <section class="page-hero">
   <h1>{{ page_heading }}</h1>
   <p>{{ note }}</p>
-</section>
-
-<section class="section">
   <div class="admin-nav-buttons">
     <a href="{{ url_for('admin_team_registration') }}" class="btn {{ 'btn-primary' if admin_tab == 'team_registration' else 'btn-ghost' }}">Team Registrations</a>
+    <a href="{{ url_for('admin_event_registration') }}" class="btn {{ 'btn-primary' if admin_tab == 'event_registration' else 'btn-ghost' }}">Event Registrations</a>
     <a href="{{ url_for('admin_access', target='rankings') }}" class="btn {{ 'btn-primary' if admin_tab == 'rankings' else 'btn-ghost' }}">Manage Rankings</a>
     <a href="{{ url_for('admin_access', target='events') }}" class="btn {{ 'btn-primary' if admin_tab == 'events' else 'btn-ghost' }}">Manage Events</a>
   </div>
+  <p><a href="{{ url_for('admin_logout') }}" class="admin-logout-btn">Log out</a></p>
+</section>
 
+<section class="section">
   {% if rows %}
+  <div class="registration-toolbar">
+    <div class="registration-search">
+      <span class="registration-search-icon">&#128269;</span>
+      <input type="text" id="regSearch" placeholder="Search by name..." autocomplete="off">
+    </div>
+    <div class="registration-count">
+      <span id="regCount">{{ rows|length }}</span> of {{ rows|length }} registrations
+    </div>
+  </div>
+
   <div class="table-card">
-    <table class="table">
+    <table class="table" id="regTable">
       <thead>
         <tr>
           {% for column in columns %}
@@ -30,11 +41,16 @@
       <tbody>
         {% for row in rows %}
         {% set row_idx = loop.index0 %}
-        <tr>
+        <tr data-name="{{ (row.get('Full Name') or '')|lower }}">
           {% for column in columns %}
           <td>
-            {% if column == 'Screenshot File' and row[column] %}
-              <a href="{{ url_for('static', filename='uploads/' ~ row[column]) }}" target="_blank" rel="noopener">View</a>
+            {% if column == 'Full Name' %}
+              <div class="reg-name-cell">
+                <span class="reg-avatar">{{ (row[column] or '?')[:1]|upper }}</span>
+                <span>{{ row[column] }}</span>
+              </div>
+            {% elif column == 'Screenshot File' and row[column] %}
+              <a href="{{ url_for('static', filename='uploads/' ~ row[column]) }}" target="_blank" rel="noopener" class="btn btn-ghost reg-view-btn">View</a>
             {% else %}
               {{ row[column] }}
             {% endif %}
@@ -66,10 +82,119 @@
         {% endfor %}
       </tbody>
     </table>
+    <p id="regNoResults" class="reg-no-results" style="display:none;">No registrations match that name.</p>
   </div>
   {% else %}
   <p>No registrations found yet.</p>
   {% endif %}
 </section>
+
+<style>
+  .registration-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .registration-search {
+    position: relative;
+    flex: 1;
+    min-width: 240px;
+    max-width: 360px;
+  }
+  .registration-search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.6;
+    font-size: 14px;
+  }
+  .registration-search input {
+    width: 100%;
+    padding: 10px 14px 10px 38px;
+    border-radius: 8px;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    background: var(--panel-soft);
+    color: var(--text);
+    font-size: 14px;
+    font-family: var(--font-body);
+  }
+  .registration-search input:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+  }
+  .registration-count {
+    color: var(--muted);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .registration-count span {
+    color: var(--gold-bright);
+    font-weight: 700;
+  }
+  .reg-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .reg-avatar {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+    color: #1a1400;
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .reg-view-btn {
+    padding: 5px 14px;
+    font-size: 12px;
+    min-width: 0;
+  }
+  .table tbody tr.reg-hidden {
+    display: none;
+  }
+  .reg-no-results {
+    text-align: center;
+    color: var(--muted);
+    padding: 20px 0 4px;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('regSearch');
+    const table = document.getElementById('regTable');
+    const countEl = document.getElementById('regCount');
+    const noResultsEl = document.getElementById('regNoResults');
+    if (!searchInput || !table) return;
+
+    const rows = Array.from(table.querySelectorAll('tbody tr'));
+    const totalCount = rows.length;
+
+    searchInput.addEventListener('input', function () {
+      const query = searchInput.value.trim().toLowerCase();
+      let visibleCount = 0;
+
+      rows.forEach(function (row) {
+        const name = row.getAttribute('data-name') || '';
+        const matches = query === '' || name.indexOf(query) !== -1;
+        row.classList.toggle('reg-hidden', !matches);
+        if (matches) visibleCount++;
+      });
+
+      countEl.textContent = visibleCount;
+      noResultsEl.style.display = visibleCount === 0 ? 'block' : 'none';
+    });
+  });
+</script>
 
 {% endblock %}

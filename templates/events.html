@@ -10,6 +10,23 @@
   {% endif %}
 </section>
 
+{% set nearest_tournament = events | selectattr('status', 'equalto', 'Upcoming') | selectattr('event_type', 'equalto', 'tournament') | first %}
+{% if nearest_tournament %}
+<section class="section">
+  <div class="registration-panel">
+    <div class="registration-panel-info">
+      <span class="status-badge status-upcoming">Registration Open</span>
+      <h2>{{ nearest_tournament.title }}</h2>
+      <p class="timeline-location">&#128205; {{ nearest_tournament.location }} &nbsp;&bull;&nbsp; {{ nearest_tournament.day }} {{ nearest_tournament.month }} {{ nearest_tournament.year }}</p>
+      <p>{{ nearest_tournament.description }}</p>
+    </div>
+    <div class="registration-panel-action">
+      <a href="{{ url_for('register_event') }}" class="btn btn-primary">Register for Tournament</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
 <section class="section">
   <div class="timeline">
     {% for event in events %}
@@ -30,7 +47,10 @@
 
         <div class="event-actions">
           {% if event.poster_filename or has_links %}
-            <button type="button" class="btn btn-primary" onclick="openEventModal({{ event_index }})">View Event</button>
+            <button type="button" class="btn btn-ghost" onclick="openEventModal({{ event_index }})">View Event</button>
+          {% endif %}
+          {% if event.event_type == 'tournament' and event.status == 'Upcoming' %}
+            <a href="{{ url_for('register_event') }}" class="btn btn-primary">Register Now</a>
           {% endif %}
         </div>
       </div>
@@ -65,6 +85,12 @@
       {% endif %}
     </div>
     {% endif %}
+
+    {% if event.event_type == 'tournament' and event.status == 'Upcoming' %}
+    <div class="event-modal-register">
+      <a href="{{ url_for('register_event') }}" class="btn btn-primary">Register for Tournament</a>
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endfor %}
@@ -75,6 +101,43 @@
 </div>
 
 <style>
+  .registration-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(19, 19, 19, 0.9));
+    border: 1px solid var(--gold);
+    border-radius: 14px;
+    padding: 26px 30px;
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.12);
+  }
+  .registration-panel-info h2 {
+    font-family: var(--font-display);
+    color: var(--text);
+    margin: 4px 0 8px;
+    font-size: 22px;
+  }
+  .registration-panel-info p {
+    color: var(--muted);
+    margin: 0 0 4px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .registration-panel-info .timeline-location {
+    margin: 0 0 6px;
+  }
+  .registration-panel-action .btn {
+    white-space: nowrap;
+  }
+  .event-modal-register {
+    margin-top: 1rem;
+  }
+  .event-modal-register .btn {
+    width: 100%;
+  }
+
   .event-modal-overlay {
     display: none;
     position: fixed;
