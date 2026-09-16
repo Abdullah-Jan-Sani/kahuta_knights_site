@@ -341,7 +341,10 @@ def login_required(view_func):
 
 @app.context_processor
 def inject_globals():
-    return {"current_year": datetime.now().year}
+    return {
+        "current_year": datetime.now().year,
+        "is_admin": bool(session.get("admin_authenticated")),
+    }
 
 
 # ======================================================================
@@ -437,7 +440,10 @@ def admin_access():
                 return redirect(url_for("admin_team_registration"))
             if target == "rankings" or target == "admin_rankings":
                 return redirect(url_for("admin_rankings"))
-            return redirect(url_for("admin_events"))
+            if target == "events" or target == "admin_events":
+                return redirect(url_for("admin_events"))
+            # Default landing page (includes the main "Admin Panel" entry point)
+            return redirect(url_for("admin_event_registration"))
         flash("Incorrect password. Please try again.", "error")
     elif session.get("admin_authenticated"):
         flash("Please re-enter the admin password to continue.", "error")
