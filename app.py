@@ -391,7 +391,15 @@ def rankings():
 
 @app.route("/team")
 def team():
-    return render_template("team.html", active="team", team_members=load_team_members())
+    members = load_team_members()
+    core_members = [m for m in members if m.get("photo_filename")]
+    official_members = [m for m in members if not m.get("photo_filename")]
+    return render_template(
+        "team.html",
+        active="team",
+        core_members=core_members,
+        team_members=official_members,
+    )
 
 
 @app.route("/contact")

@@ -7,7 +7,39 @@
   <p>The full Kahuta Knights roster.</p>
 </section>
 
+{% if core_members %}
 <section class="section">
+  <div class="team-section-heading">
+    <h2>Core Members</h2>
+    <p class="team-section-subtitle">The Core Management Team Members of Kahuta Knights.</p>
+  </div>
+  <div class="team-grid">
+    {% for member in core_members %}
+    <div class="team-card">
+      <div class="team-photo">
+        {% if member.photo_filename %}
+          <img src="{{ url_for('static', filename='images/members/' + member.photo_filename) }}" alt="{{ member.name }}">
+        {% else %}
+          <span>{{ member.initials }}</span>
+        {% endif %}
+      </div>
+      <h3>{{ member.name }}</h3>
+      <p class="team-weight">{{ member.role or member.weight_class }}</p>
+      <p class="team-note">{{ member.note }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<div class="team-section-divider"></div>
+{% endif %}
+
+<section class="section">
+  <div class="team-section-heading">
+    <h2>Official Members</h2>
+    <p class="team-section-subtitle">Approved athletes on the official Kahuta Knights team.</p>
+  </div>
+  {% if team_members %}
   <div class="team-grid">
     {% for member in team_members %}
     <div class="team-card">
@@ -24,7 +56,45 @@
     </div>
     {% endfor %}
   </div>
-
+  {% else %}
+  <p class="team-empty-note">No official members yet.</p>
+  {% endif %}
 </section>
+
+<style>
+  .team-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 260px));
+    justify-content: center;
+  }
+  .team-section-heading {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .team-section-heading h2 {
+    color: var(--gold-bright, #f1c94f);
+    font-size: 26px;
+    margin-bottom: 6px;
+  }
+  .team-section-subtitle {
+    color: var(--muted, #ccc);
+    font-size: 14px;
+    margin: 0;
+  }
+  .team-section-divider {
+    max-width: 1100px;
+    margin: 10px auto 40px;
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      rgba(212, 175, 55, 0.5),
+      transparent
+    );
+  }
+  .team-empty-note {
+    text-align: center;
+    color: var(--muted, #ccc);
+  }
+</style>
 
 {% endblock %}
