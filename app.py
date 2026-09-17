@@ -462,11 +462,15 @@ def admin_logout():
     return redirect(url_for("home"))
 
 
+TEAM_REGISTRATION_COLUMNS = ["Timestamp", "Full Name", "Phone", "Email", "Age", "Weight", "Status"]
+
+
 @app.route("/admin/team_registration")
 @login_required
 def admin_team_registration():
     rows = read_csv_rows(TEAM_DATA_FILE)
-    columns = rows[0].keys() if rows else ["Timestamp", "Full Name", "Phone", "Email", "Age", "Weight", "Status"]
+    columns = TEAM_REGISTRATION_COLUMNS
+    rows = [{col: row.get(col, "") for col in columns} for row in rows]
     return render_template(
         "admin_registration.html",
         active="admin",
@@ -479,11 +483,17 @@ def admin_team_registration():
     )
 
 
+EVENT_REGISTRATION_COLUMNS = ["Timestamp", "Full Name", "Phone", "Team Name", "Email", "Age", "Weight", "Screenshot File"]
+
+
 @app.route("/admin/event_registration")
 @login_required
 def admin_event_registration():
     rows = read_csv_rows(EVENT_DATA_FILE)
-    columns = rows[0].keys() if rows else ["Timestamp", "Full Name", "Phone", "Team Name", "Email", "Age", "Weight", "Screenshot File"]
+    # Always show exactly the fields on the registration form, even if the
+    # CSV file on disk has stray/old columns left over from a previous version.
+    columns = EVENT_REGISTRATION_COLUMNS
+    rows = [{col: row.get(col, "") for col in columns} for row in rows]
     return render_template(
         "admin_registration.html",
         active="admin",
