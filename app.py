@@ -36,7 +36,7 @@ TEAM_MEMBERS_FILE = os.path.join(BASE_DIR, "team_members.json")
 
 ALLOWED_EXTENSIONS = {"pdf", "doc", "docx", "xls", "csv", "jpg", "jpeg", "png", "gif"}
 ALLOWED_POSTER_EXTENSIONS = {"jpg", "jpeg", "png", "gif", "webp"}
-MAX_CONTENT_LENGTH = 15 * 1024 * 1024  # 15 MB max upload
+MAX_CONTENT_LENGTH = 15*1024*1024  
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
