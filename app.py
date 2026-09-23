@@ -33,10 +33,13 @@ EVENT_DATA_FILE = os.path.join(BASE_DIR, "event_registrations.csv")
 RANKINGS_FILE = os.path.join(BASE_DIR, "rankings.json")
 EVENTS_FILE = os.path.join(BASE_DIR, "events.json")
 TEAM_MEMBERS_FILE = os.path.join(BASE_DIR, "team_members.json")
+SETTINGS_FILE = os.path.join(BASE_DIR, "settings.json")
+
+ONSPOT_ENTRY_FEE = 500
 
 ALLOWED_EXTENSIONS = {"pdf", "doc", "docx", "xls", "csv", "jpg", "jpeg", "png", "gif"}
 ALLOWED_POSTER_EXTENSIONS = {"jpg", "jpeg", "png", "gif", "webp"}
-MAX_CONTENT_LENGTH = 15*1024*1024  
+MAX_CONTENT_LENGTH = 15 * 1024 * 1024  # 15 MB max upload
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
@@ -329,6 +332,52 @@ def save_events(data):
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
+# ======================================================================
+# SITE SETTINGS (e.g. tournament registration deadline)
+# ======================================================================
+
+DEFAULT_SETTINGS = {
+    "registration_deadline": "",   # "" means no deadline set / registration always open
+}
+
+
+def load_settings():
+    if not os.path.isfile(SETTINGS_FILE):
+        save_settings(DEFAULT_SETTINGS)
+        return dict(DEFAULT_SETTINGS)
+    with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    merged = dict(DEFAULT_SETTINGS)
+    merged.update(data or {})
+    return merged
+
+
+def save_settings(data):
+    tmp_path = SETTINGS_FILE + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    os.replace(tmp_path, SETTINGS_FILE)
+
+
+def get_registration_deadline():
+    """Returns the deadline as a datetime (end of that day) or None if unset/invalid."""
+    deadline_str = load_settings().get("registration_deadline", "").strip()
+    if not deadline_str:
+        return None
+    try:
+        deadline = datetime.strptime(deadline_str, "%Y-%m-%d")
+    except ValueError:
+        return None
+    return deadline.replace(hour=23, minute=59, second=59)
+
+
+def registration_is_closed():
+    deadline = get_registration_deadline()
+    if deadline is None:
+        return False
+    return datetime.now() > deadline
+
+
 def login_required(view_func):
     @wraps(view_func)
     def wrapped(*args, **kwargs):
@@ -359,6 +408,7 @@ def home():
         (event for event in events if event.get("status") == "Upcoming" and event.get("event_type") == "tournament"),
         None,
     )
+    settings = load_settings()
     return render_template(
         "home.html",
         active="home",
@@ -366,16 +416,23 @@ def home():
         team_members=team_members,
         events=events,
         nearest_tournament=nearest_tournament,
+        registration_closed=registration_is_closed(),
+        registration_deadline=settings.get("registration_deadline", ""),
+        onspot_fee=ONSPOT_ENTRY_FEE,
     )
 
 
 @app.route("/events")
 def events():
+    settings = load_settings()
     return render_template(
         "events.html",
         active="events",
         events=load_events(),
         is_admin=bool(session.get("admin_authenticated")),
+        registration_closed=registration_is_closed(),
+        registration_deadline=settings.get("registration_deadline", ""),
+        onspot_fee=ONSPOT_ENTRY_FEE,
     )
 
 
@@ -391,15 +448,7 @@ def rankings():
 
 @app.route("/team")
 def team():
-    members = load_team_members()
-    core_members = [m for m in members if m.get("photo_filename")]
-    official_members = [m for m in members if not m.get("photo_filename")]
-    return render_template(
-        "team.html",
-        active="team",
-        core_members=core_members,
-        team_members=official_members,
-    )
+    return render_template("team.html", active="team", team_members=load_team_members())
 
 
 @app.route("/contact")
@@ -421,13 +470,18 @@ def register():
 
 @app.route("/register-event", methods=["GET"])
 def register_event():
+    settings = load_settings()
+    closed = registration_is_closed()
     return render_template(
         "register.html",
         active="register",
         form_type="event",
         page_title="Event Registration",
         page_description="Sign up for the tournament and upload your registration fee proof.",
-        submit_label="Register for Event"
+        submit_label="Register for Event",
+        registration_closed=closed,
+        registration_deadline=settings.get("registration_deadline", ""),
+        onspot_fee=ONSPOT_ENTRY_FEE,
     )
 
 
@@ -470,15 +524,11 @@ def admin_logout():
     return redirect(url_for("home"))
 
 
-TEAM_REGISTRATION_COLUMNS = ["Timestamp", "Full Name", "Phone", "Email", "Age", "Weight", "Status"]
-
-
 @app.route("/admin/team_registration")
 @login_required
 def admin_team_registration():
     rows = read_csv_rows(TEAM_DATA_FILE)
-    columns = TEAM_REGISTRATION_COLUMNS
-    rows = [{col: row.get(col, "") for col in columns} for row in rows]
+    columns = rows[0].keys() if rows else ["Timestamp", "Full Name", "Phone", "Email", "Age", "Weight", "Status"]
     return render_template(
         "admin_registration.html",
         active="admin",
@@ -491,17 +541,11 @@ def admin_team_registration():
     )
 
 
-EVENT_REGISTRATION_COLUMNS = ["Timestamp", "Full Name", "Phone", "Team Name", "Email", "Age", "Weight", "Screenshot File"]
-
-
 @app.route("/admin/event_registration")
 @login_required
 def admin_event_registration():
     rows = read_csv_rows(EVENT_DATA_FILE)
-    # Always show exactly the fields on the registration form, even if the
-    # CSV file on disk has stray/old columns left over from a previous version.
-    columns = EVENT_REGISTRATION_COLUMNS
-    rows = [{col: row.get(col, "") for col in columns} for row in rows]
+    columns = rows[0].keys() if rows else ["Timestamp", "Full Name", "Phone", "Team Name", "Email", "Age", "Weight", "Screenshot File"]
     return render_template(
         "admin_registration.html",
         active="admin",
@@ -564,12 +608,6 @@ def admin_team_registration_action(row_index, action):
         flash(f"{applicant_name} added to waiting list and notified via email.", "info")
 
         if applicant_email:
-            waitlist_whatsapp_link = os.environ.get("WHATSAPP_GROUP_LINK", "#")
-            if waitlist_whatsapp_link and not waitlist_whatsapp_link.startswith("http"):
-                waitlist_whatsapp_link = f"https://{waitlist_whatsapp_link}"
-            waitlist_whatsapp_link_2 = os.environ.get("WHATSAPP_GROUP_LINK_2", "#")
-            if waitlist_whatsapp_link_2 and not waitlist_whatsapp_link_2.startswith("http"):
-                waitlist_whatsapp_link_2 = f"https://{waitlist_whatsapp_link_2}"
             msg = Message(
                 subject="Your Kahuta Knights Application - Waiting List Status",
                 recipients=[applicant_email]
@@ -603,10 +641,6 @@ def admin_team_registration_action(row_index, action):
                     <p style="margin: 10px 0;">
                         <strong>M. Zain Ijaz</strong><br>
                         Phone: <strong>0343 3408358</strong>
-                    </p>
-                    <p style="margin: 15px 0;">
-                        <strong>Official Team Updates Group :</strong><br>
-                        <a href="{waitlist_whatsapp_link_2}" style="color: #25D366; text-decoration: underline;">{waitlist_whatsapp_link_2}</a>
                     </p>
                     
                     <br>
@@ -679,12 +713,6 @@ def admin_email_action(row_index, action):
         flash(f"Added {applicant_name} to waiting list and sent notification email.", "info")
 
         if applicant_email:
-            waitlist_whatsapp_link = os.environ.get("WHATSAPP_GROUP_LINK", "#")
-            if waitlist_whatsapp_link and not waitlist_whatsapp_link.startswith("http"):
-                waitlist_whatsapp_link = f"https://{waitlist_whatsapp_link}"
-            waitlist_whatsapp_link_2 = os.environ.get("WHATSAPP_GROUP_LINK_2", "#")
-            if waitlist_whatsapp_link_2 and not waitlist_whatsapp_link_2.startswith("http"):
-                waitlist_whatsapp_link_2 = f"https://{waitlist_whatsapp_link_2}"
             msg = Message(
                 subject="Your Kahuta Knights Application - Waiting List Status",
                 recipients=[applicant_email]
@@ -718,14 +746,6 @@ def admin_email_action(row_index, action):
                     <p style="margin: 10px 0;">
                         <strong>M. Zain Ijaz</strong><br>
                         Phone: <strong>0343 3408358</strong>
-                    </p>
-                    <p style="margin: 15px 0;">
-                        <strong>Official Team WhatsApp Group:</strong><br>
-                        <a href="{waitlist_whatsapp_link}" style="color: #25D366; text-decoration: underline;">{waitlist_whatsapp_link}</a>
-                    </p>
-                    <p style="margin: 15px 0;">
-                        <strong>Official Team WhatsApp Group (2):</strong><br>
-                        <a href="{waitlist_whatsapp_link_2}" style="color: #25D366; text-decoration: underline;">{waitlist_whatsapp_link_2}</a>
                     </p>
                     
                     <br>
@@ -894,12 +914,39 @@ def _delete_uploaded_file(filename):
 @app.route("/admin/events")
 @login_required
 def admin_events():
+    settings = load_settings()
     return render_template(
         "admin_events.html",
         active="admin",
         admin_tab="events",
         events=load_events(),
+        registration_deadline=settings.get("registration_deadline", ""),
+        onspot_fee=ONSPOT_ENTRY_FEE,
     )
+
+
+@app.route("/admin/events/registration_deadline", methods=["POST"])
+@login_required
+def admin_set_registration_deadline():
+    deadline = request.form.get("registration_deadline", "").strip()
+
+    if deadline:
+        try:
+            datetime.strptime(deadline, "%Y-%m-%d")
+        except ValueError:
+            flash("Invalid date format. Please pick a date.", "error")
+            return redirect(url_for("admin_events"))
+
+    settings = load_settings()
+    settings["registration_deadline"] = deadline
+    save_settings(settings)
+
+    if deadline:
+        flash(f"Registration deadline set to {deadline}.", "success")
+    else:
+        flash("Registration deadline cleared. Online registration is open.", "success")
+
+    return redirect(url_for("admin_events"))
 
 
 @app.route("/admin/events/add", methods=["POST"])
@@ -1019,6 +1066,13 @@ def submit():
     age = request.form.get("age", "").strip()
     weight = request.form.get("weight", "").strip()
     screenshot = request.files.get("screenshot")
+
+    if form_type == "event" and registration_is_closed():
+        flash(
+            f"Online registration has closed. On-spot entry is now available for Rs. {ONSPOT_ENTRY_FEE}.",
+            "error",
+        )
+        return redirect(url_for("register_event"))
 
     errors = []
     if not full_name:

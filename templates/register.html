@@ -19,6 +19,27 @@
 <section class="section register-section">
   <div class="form-card">
 
+    {% if form_type == 'event' and registration_closed %}
+    <div class="registration-closed-notice">
+      <h3>Online Registration Closed</h3>
+      <p>
+        Online registration for this tournament ended on
+        <strong>{{ registration_deadline }}</strong>.
+      </p>
+      <p>
+        You can still take part &mdash; <strong>on-spot entry fee is Rs. {{ onspot_fee }}</strong>,
+        payable in person at the venue on the day of the event.
+      </p>
+      <p class="contact-line">For more details contact here : 03448583226</p>
+    </div>
+    {% else %}
+
+    {% if form_type == 'event' and registration_deadline %}
+    <div class="deadline-notice">
+      ⏰ Online registration closes on <strong>{{ registration_deadline }}</strong>. Please submit your form before the deadline.
+    </div>
+    {% endif %}
+
     <form id="registrationForm" action="{{ url_for('submit') }}" method="POST" enctype="multipart/form-data">
       <input type="hidden" name="form_type" value="{{ form_type }}">
 
@@ -86,6 +107,7 @@
       <p class="contact-line">For more details contact here : 03448583226</p>
 
     </form>
+    {% endif %}
   </div>
 </section>
 
@@ -143,6 +165,47 @@
 
 .modal-btn:hover {
   opacity: 0.85;
+}
+
+/* Deadline Notice (registration still open) */
+.deadline-notice {
+  max-width: 600px;
+  margin: 0 auto 20px auto;
+  padding: 14px 20px;
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid #d4af37;
+  border-radius: 8px;
+  color: #d4af37;
+  text-align: center;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Registration Closed Notice */
+.registration-closed-notice {
+  background: #181818;
+  border: 1px solid #d4af37;
+  border-radius: 10px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+}
+
+.registration-closed-notice h3 {
+  color: #d4af37;
+  font-size: 1.4rem;
+  margin-bottom: 15px;
+}
+
+.registration-closed-notice p {
+  color: #dddddd;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.registration-closed-notice p:last-child {
+  margin-bottom: 0;
 }
 </style>
 

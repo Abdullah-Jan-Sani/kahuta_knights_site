@@ -25,6 +25,37 @@
     {% endif %}
   {% endwith %}
 
+  <div class="form-card registration-deadline-card">
+    <h3>Tournament Registration Deadline</h3>
+    <p class="admin-event-meta">
+      {% if registration_deadline %}
+        Online registration closes on <strong>{{ registration_deadline }}</strong>.
+        After this date, the registration form is replaced with an on-spot entry notice (Rs. {{ onspot_fee }}).
+      {% else %}
+        No deadline set &mdash; online registration is currently open with no cutoff.
+      {% endif %}
+    </p>
+    <form action="{{ url_for('admin_set_registration_deadline') }}" method="POST" class="admin-deadline-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="registration_deadline">Deadline Date</label>
+          <input type="date" id="registration_deadline" name="registration_deadline" value="{{ registration_deadline }}">
+        </div>
+      </div>
+      <div class="admin-deadline-actions">
+        <button type="submit" class="submit-btn">Save Deadline</button>
+      </div>
+    </form>
+    {% if registration_deadline %}
+    <form action="{{ url_for('admin_set_registration_deadline') }}" method="POST" class="admin-deadline-form">
+      <input type="hidden" name="registration_deadline" value="">
+      <div class="admin-deadline-actions">
+        <button type="submit" class="admin-btn admin-btn-clear">Clear (Reopen Registration)</button>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+
   <details class="form-card admin-collapsible">
     <summary class="admin-collapsible-summary">+ Add New Event</summary>
     <form action="{{ url_for('admin_events_add') }}" method="POST" enctype="multipart/form-data" class="admin-event-form">
@@ -243,6 +274,12 @@
   .admin-event-form textarea { width: 100%; }
   .admin-btn { border: none; border-radius: 4px; padding: 0.35rem 0.75rem; cursor: pointer; font-size: 0.85rem; }
   .admin-btn-delete { background: #b3261e; color: #fff; }
+  .admin-btn-clear { background: #444; color: #fff; }
+
+  .registration-deadline-card { margin-bottom: 1.5rem; }
+  .registration-deadline-card h3 { margin: 0 0 0.4rem 0; }
+  .admin-deadline-form { margin-top: 0.75rem; }
+  .admin-deadline-actions { display: flex; gap: 0.6rem; margin-top: 0.5rem; }
   .admin-logout-btn {
     display: inline-block;
     background: #b3261e;
