@@ -21,13 +21,6 @@
     "photo_filename": "waqas.png"
   },
   {
-    "name": "Hamza Khan",
-    "weight_class": "-80kg Class",
-    "initials": "HK",
-    "note": "Current Champion Right Hand.",
-    "photo_filename": "hamza.png"
-  },
-  {
     "name": "Skiandar Satti",
     "weight_class": "-80kg Class",
     "initials": "SS",
@@ -52,7 +45,7 @@
     "name": "Abdull Rehman",
     "weight_class": "-80kg Class",
     "initials": "AR",
-    "note": "Current Champion Left Hand",
+    "note": "Current Champion Both Hands",
     "photo_filename": "rehman.png"
   }
 ]
